@@ -398,4 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 itchio.cookie
-apitoken
+apikey
