@@ -1,0 +1,88 @@
+@page "/GameByID/{id:long}"
+@inject NavigationManager NavManager
+
+@if (game == null)
+{
+	<Spinner></Spinner>
+}
+else
+{
+	<a href="@game.URL">@game.URL</a>
+	<GameTile Game="@game"></GameTile>
+
+	@if (uploads == null)
+	{
+		<Spinner></Spinner>
+	}
+	else
+	{
+		@foreach (var upload in uploads)
+		{
+			<a href="javascript:void(0);" @onclick="@(e=>DownloadUpload(upload))">
+				@if (upload.IsDemo)
+				{
+					<span>[DEMO]</span>
+				}
+				@if (upload.Platforms != 0)
+				{
+					<PlatformIcons Platforms="@upload.Platforms"></PlatformIcons>
+				}
+				<span>@(upload.DisplayName??upload.Filename) (@Downloader.BytesToString(upload.Size))</span>
+			</a>
+			<br>
+		}
+	}
+}
+
+@code {
+	[Parameter]
+	public long id { get; set; }
+	Game game;
+	List<Upload> uploads;
+
+	async Task DownloadUpload(Upload u)
+	{
+		/*
+		if (u.Filename.EndsWith(".apk"))
+		{
+			long key = RashClient.OwnedKeys.FirstOrDefault(k => k.GameID == game.ID)?.ID ?? 0;
+		var ds = await RashClient.Itch.NewDownloadSession(u.ID, key);
+		var url = RashClient.Itch.CreateDownloadURL(u.ID, ds.UUID, key);
+
+			var outpath = u.Filename;
+
+			{
+				var res = await RashClient.Itch.HttpClient.GetAsync(url);
+				var f = new FileStream(outpath, FileMode.OpenOrCreate);
+				await res.Content.CopyToAsync(f);
+				f.Close();
+			}
+
+			var adb = new ADB();
+			await adb.StartServer();
+
+			var de = adb.GetDevices().GetAsyncEnumerator();
+			await de.MoveNextAsync();
+			var dev = de.Current;
+
+			await dev.PushFile(outpath, "/storage/emulated/0/");
+			Console.WriteLine("done!");
+		}
+		else
+		*/
+		{
+			//NavManager.NavigateTo(url);
+			await DownloadManager.StartDownloadUpload(game.ID, u.ID);
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		var itch = new Itch(null);
+		game = (await RashClient.Itch.GetGame(id)).Game;
+
+		long key = RashClient.OwnedKeys.FirstOrDefault(k => k.GameID == id)?.ID ?? 0;
+
+		uploads = (await RashClient.Itch.ListUploads(game.ID, key)).Uploads;
+	}
+}

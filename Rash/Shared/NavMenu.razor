@@ -1,0 +1,85 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+	<div class="container-fluid">
+		<a class="navbar-brand" href="">Rash</a>
+		<button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+	</div>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+	<nav class="flex-column">
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+				<span class="oi oi-home" aria-hidden="true"></span> Home
+			</NavLink>
+		</div>
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="library" Match="NavLinkMatch.All">
+				<span class="oi oi-box" aria-hidden="true"></span> Library
+			</NavLink>
+		</div>
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="profile">
+				<span class="oi oi-person" aria-hidden="true"></span> Profile
+			</NavLink>
+		</div>
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="settings">
+				<span class="oi oi-spreadsheet" aria-hidden="true"></span> Settings
+			</NavLink>
+		</div>
+	</nav>
+</div>
+
+@foreach (var dl in DownloadManager.Downloads)
+{
+	<div>
+	<img src="@dl.Game.CoverURL" width="100px">
+	<h4>@dl.Game.Title</h4>
+	<div>@(dl.Upload.DisplayName??dl.Upload.Filename)</div>
+	@if(dl.Downloader.State == DownloaderState.Downloading)
+	{
+		<div>
+			<span>@((dl.Downloader.Progress * 100).ToString("0") + "%")</span>
+			<span>@(Downloader.BytesToString(dl.Downloader.progressBytes)) / @(Downloader.BytesToString(dl.Downloader.totalBytes))</span>
+			<span>@(Downloader.BytesToString(dl.Downloader.DownloadSpeed))/s</span>
+		</div>
+		<progress value="@dl.Downloader.Progress" max="1">@dl.Downloader.Progress</progress>
+	}
+	else
+	{
+		<div>@dl.Downloader.State</div>
+	}
+</div>
+}
+
+@code {
+	private bool collapseNavMenu = true;
+
+	private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+	private void ToggleNavMenu()
+	{
+		collapseNavMenu = !collapseNavMenu;
+	}
+
+	protected override void OnInitialized()
+	{
+		DownloadManager.OnDownloadStarted += (dlo, a) =>
+		{
+			var dl = (GameDownload)dlo;
+			this.InvokeAsync(()=>StateHasChanged());
+
+			dl.Downloader.OnProgress += (e,a)=>
+			{
+				this.InvokeAsync(()=>StateHasChanged());
+			};
+
+			dl.Downloader.OnFinish += (e,a)=>
+			{
+				this.InvokeAsync(()=>StateHasChanged());
+			};
+		};
+	}
+}

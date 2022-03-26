@@ -1,0 +1,221 @@
+@page "/library"
+
+<h1>Library</h1>
+
+<style>
+	.filters {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.filters>div {
+		display: flex;
+		flex-direction: row;
+	}
+</style>
+
+<div class="filters">
+	<div>
+		<label for="name">Name</label>
+		<input id="name" @bind="@titlefilter">
+	</div>
+	<div>
+
+		<div>
+			<input id="windows" type="checkbox" @bind="filterPlatformWindows">
+			<label for="windows"><img height="32" src="platforms/win.png"></label>
+		</div>
+		<div>
+			<input id="linux" type="checkbox" @bind="filterPlatformLinux">
+			<label for="linux"><img height="32" src="platforms/linux.png"></label>
+		</div>
+		<div>
+			<input id="mac" type="checkbox" @bind="filterPlatformMac">
+			<label for="mac"><img height="32" src="platforms/mac.png"></label>
+		</div>
+		<div>
+			<input id="android" type="checkbox" @bind="filterPlatformAndroid">
+			<label for="android"><img height="32" src="platforms/android.png"></label>
+		</div>
+		<div>
+			<input id="ios" type="checkbox" @bind="filterPlatformiOS">
+			<label for="ios"><img height="32" src="platforms/ios.png"></label>
+		</div>
+		<div>
+			<input id="web" type="checkbox" @bind="filterPlatformWeb">
+			<label for="web"><img height="32" src="platforms/html.png"></label>
+		</div>
+	</div>
+	<div>
+		<div>
+			<input id="game" type="checkbox" @bind="filterGame">
+			<label for="game">Games</label>
+		</div>
+		<div>
+			<input id="mod" type="checkbox" @bind="filterMod">
+			<label for="mod">Mods</label>
+		</div>
+		<div>
+			<input id="tool" type="checkbox" @bind="filterTool">
+			<label for="tool">Tools</label>
+		</div>
+		<div>
+			<input id="assets" type="checkbox" @bind="filterAsset">
+			<label for="assets">assets</label>
+		</div>
+		<div>
+			<input id="physical_game" type="checkbox" @bind="filterPhysicalGame">
+			<label for="physical_game">physical_game</label>
+		</div>
+		<div>
+			<input id="soundtrack" type="checkbox" @bind="filterSoundtrack">
+			<label for="soundtrack">soundtrack</label>
+		</div>
+		<div>
+			<input id="book" type="checkbox" @bind="filterBook">
+			<label for="book">book</label>
+		</div>
+		<div>
+			<input id="other" type="checkbox" @bind="filterOther">
+			<label for="other">Other</label>
+		</div>
+	</div>
+</div>
+<button @onclick="GenerateFilters">Searchs</button>
+
+<div style="display: flex; flex-wrap:wrap; width: 100%; justify-content:center;">
+	<InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="(e) => FetchGames()">
+		@foreach (var k in RashClient.OwnedKeys)
+		{
+			@if (Filter(k))
+			{
+				<GameTile Game="@k.Game" ShowPrice=false></GameTile>
+			}
+		}
+
+		@if (downloading && !RashClient.OwnedKeysFinished)
+		{
+			<Spinner></Spinner>
+		}
+		<span id="observerTarget"></span>
+	</InfiniteScroll>
+</div>
+@if (RashClient.OwnedKeysFinished)
+{
+	<div style="display: flex; width: 100%; justify-content:center;">
+	<img src="killroy.svg">
+</div>
+}
+
+@code {
+	protected override async Task OnInitializedAsync()
+	{
+		if (downloading || RashClient.OwnedKeysFinished) return;
+		downloading = true;
+
+		while (!RashClient.OwnedKeysFinished)
+		{
+			var okr = await RashClient.Itch.GetOwnedKeys(page);
+			if (okr.OwnedKeys.Count == 0)
+			{
+				RashClient.OwnedKeysFinished = true;
+			}
+			if(okr.OwnedKeys.Count > 0)
+				RashClient.OwnedKeys.AddRange(okr.OwnedKeys);
+			page++;
+		}
+
+		downloading = false;
+	}
+
+	static int page = 1;
+
+	bool downloading = false;
+
+	bool filterPlatformWindows = true;
+	bool filterPlatformLinux = true;
+	bool filterPlatformMac = true;
+	bool filterPlatformAndroid = true;
+	bool filterPlatformiOS = true;
+	bool filterPlatformWeb = true;
+
+	string titlefilter = "";
+
+	bool filterGame = true;
+	bool filterMod = true;
+	bool filterPhysicalGame = true;
+	bool filterTool = true;
+	bool filterAsset = true;
+	bool filterSoundtrack = true;
+	bool filterBook = true;
+	bool filterOther = true;
+
+
+	List<string> classifications = new();
+	Platforms filterPlatform = 0;
+	bool Filter(OwnedKey k)
+	{
+		GenerateFilters();
+
+		if (!classifications.Contains(k.Game.Classification))
+			return false;
+
+		if (!k.Game.Title.ToLower().Contains(titlefilter.ToLower()))
+			return false;
+
+		if (k.Game.Platforms == 0)
+		{
+			if (filterPlatform != Platforms.All)
+				return false;
+		}
+		else
+		if ((filterPlatform & k.Game.Platforms) == 0)
+			return false;
+
+		return true;
+	}
+
+	void GenerateFilters()
+	{
+		classifications = new List<string>();
+		if (filterGame) classifications.Add("game");
+		if (filterMod) classifications.Add("game_mod");
+		if (filterPhysicalGame) classifications.Add("physical_game");
+		if (filterTool) classifications.Add("tool");
+		if (filterAsset) classifications.Add("assets");
+		if (filterSoundtrack) classifications.Add("soundtrack");
+		if (filterBook) classifications.Add("book");
+		if (filterOther) classifications.Add("other");
+
+		filterPlatform = 0;
+		if (filterPlatformWindows) filterPlatform |= Platforms.Windows;
+		if (filterPlatformLinux) filterPlatform |= Platforms.Linux;
+		if (filterPlatformMac) filterPlatform |= Platforms.MacOS;
+		if (filterPlatformAndroid) filterPlatform |= Platforms.Android;
+		if (filterPlatformiOS) filterPlatform |= Platforms.iOS;
+		if (filterPlatformWeb) filterPlatform |= Platforms.Web;
+		if (filterPlatform == 0) filterPlatform = Platforms.All;
+	}
+
+	async Task FetchGames()
+	{
+		await Task.Delay(0);
+		return;
+
+		/*
+		if (downloading) return;
+		downloading = true;
+
+		var okr = await RashClient.Itch.GetOwnedKeys(page);
+
+		if (okr.OwnedKeys.Count == 0)
+		{
+		RashClient.OwnedKeysFinished = true;
+		}
+		RashClient.OwnedKeys.AddRange(okr.OwnedKeys);
+
+		downloading = false;
+		page++;
+		*/
+	}
+}

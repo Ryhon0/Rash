@@ -1,0 +1,90 @@
+<a href="@redirecturl" class="game-feed">
+	<div class="cover-feed">
+		@if (Game.CoverURL != null)
+		{
+			<div class="cover-feed" style="background-image: url(@Game.CoverURL)">
+			</div>
+		}
+	</div>
+
+	<div class="game-text">
+		<span class="game-title">@Game.Title</span>
+		@if (ShowPrice)
+		{
+			@if (Game.PriceCents != 0)
+			{
+				<span class="game-price">$@(Game.PriceCents/100f)</span>
+
+				@if (Game.Sale != null)
+				{
+					@if (Game.Sale.Rate != 0)
+					{
+						<span class="game-sale">
+							-@(Game.Sale.Rate)%
+						</span>
+					}
+					else
+					{
+						<span class="game-sale">
+							In Bundle
+						</span>
+					}
+				}
+			}
+			else
+			{
+				<span>Free</span>
+			}
+		}
+	</div>
+	<PlatformIcons Platforms="@Game.Platforms"></PlatformIcons>
+	@if (Game.HasDemo)
+	{
+		<p>[HAS DEMO]</p>
+	}
+</a>
+
+@code
+{
+	[Parameter]
+	public Game Game { get; set; }
+	[Parameter]
+	public bool ShowPrice { get; set; } = true;
+
+	string redirecturl => Game.ID == 0 ? ("/GameByURL/" + System.Net.WebUtility.UrlEncode(Game.URL)) : ("/GameByID/" + Game.ID); 
+}
+
+
+<style>
+	.game-feed {
+		width: 320px;
+		height: 320px;
+		margin: 7px;
+	}
+
+	.game-text {
+		width: 100%;
+		display: flex;
+		flex-direction: row;
+	}
+
+	.game-title {
+		flex-grow: 1;
+	}
+
+	.game-sale {
+		padding: 4px;
+		border-radius: 7px;
+		color: black;
+		background-color: greenyellow;
+	}
+
+	.cover-feed {
+		width: 315px;
+		height: 250px;
+		background-image: url("/cover-placeholder.png");
+		background-color: ;
+		background-position: center;
+		background-size: cover;
+	}
+</style>

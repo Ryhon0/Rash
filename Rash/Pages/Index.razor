@@ -1,0 +1,60 @@
+﻿@page "/"
+
+<h1>Feed</h1>
+
+<style>
+	.game-feed {
+		width: 320px;
+		height: 320px;
+	}
+
+	.cover-feed {
+		width: 315px;
+		height: 250px;
+		background-color: gray;
+		background-position: center;
+		background-size: cover;
+	}
+</style>
+
+<div style="display: flex; flex-wrap:wrap; width: 100%; justify-content:center;">
+	<InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="(e) => FetchGames()">
+		@foreach (var g in games)
+		{
+			<GameTile Game="@g"></GameTile>
+		}
+
+		<span id="observerTarget"></span>
+		@if(downloading)
+		{
+			<Spinner></Spinner>
+		}
+	</InfiniteScroll>
+</div>
+
+@code {
+	List<Game> games = new();
+	string url = null;
+	ItchGameFeedParameters p = new()
+	{
+		Platforms = Platforms.Linux | Platforms.Android | Platforms.Windows,
+	};
+	int page = 1;
+	protected override void OnInitialized()
+	{
+		url = RashClient.Itch.BuildGameFeedURL(p);
+	}
+
+	bool downloading;
+	async Task FetchGames()
+	{
+		if(downloading) return;
+		downloading = true;
+
+		var u = url + "?page=" + page;
+		games.AddRange((await RashClient.Itch.ReadFeed(u)).ToList());
+		
+		downloading = false;
+		page++;
+	}
+}

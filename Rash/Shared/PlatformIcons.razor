@@ -1,0 +1,29 @@
+@if(Platforms.HasFlag(Platforms.Linux))
+{
+	<img height="32"src="platforms/linux.png">
+}
+@if(Platforms.HasFlag(Platforms.Windows))
+{
+	<img height="32"src="platforms/win.png">
+}
+@if(Platforms.HasFlag(Platforms.MacOS))
+{
+	<img height="32"src="platforms/mac.png">
+}
+@if(Platforms.HasFlag(Platforms.Android))
+{
+	<img height="32"src="platforms/android.png">
+}
+@if(Platforms.HasFlag(Platforms.iOS))
+{
+	<img height="32"src="platforms/ios.png">
+}
+@if(Platforms.HasFlag(Platforms.Web))
+{
+	<img height="32"src="platforms/html.png">
+}
+
+@code{
+	[Parameter]
+	public Platforms Platforms {get;set;}
+}

@@ -1,0 +1,97 @@
+@page "/profile"
+
+<h1>Profile</h1>
+
+@if (profile != null)
+{
+	<img src="@profile.CoverURL">
+	<h1>@profile.Username</h1>
+}
+else
+{
+	<Spinner></Spinner>
+}
+
+<h2>Summary</h2>
+@if (graphs != null)
+{
+	<style>
+	text {
+		color: red;
+	}
+</style>
+	<MudChart ChartType="ChartType.Line" ChartSeries="@Series" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels"
+	Width="100%" Height="350px"></MudChart>
+}
+else
+{
+	<Spinner></Spinner>
+}
+
+<h2>My games</h2>
+@if (games != null)
+{
+	<div style="display: flex; flex-wrap:wrap;">
+	@foreach (var g in games)
+	{
+		<div>
+			<img src="@g.CoverURL">
+			<h3>@g.Title</h3>
+			<span class="oi oi-eye" aria-hidden="true"></span> @g.ViewsCount
+			<span class="oi oi-data-transfer-download" aria-hidden="true"></span> @g.DownloadsCount
+			<span class="oi oi-dollar" aria-hidden="true"></span> @g.PurchasesCount
+		</div>
+	}
+	</div>
+}
+else
+{
+	<Spinner></Spinner>
+}
+@code {
+	User profile;
+	GraphsResponse graphs;
+	List<Game> games = new();
+
+
+	public List<ChartSeries> Series = new();
+	public string[] XAxisLabels = { "-4", "-3", "-2", "-1", "0" };
+	private int Index = -1;
+	protected override async Task OnInitializedAsync()
+	{
+		profile = (await RashClient.Itch.GetProfile()).User;
+		games = (await RashClient.Itch.GetGames()).Games;
+		graphs = await RashClient.Itch.GetGraphs();
+
+		Series = new()
+		{
+			new ChartSeries() { Name = "Views", Data = generatePoints(graphs.Views) },
+			new ChartSeries() { Name = "Downloads", Data = generatePoints(graphs.Downloads) },
+			new ChartSeries() { Name = "Purchases", Data = generatePoints(graphs.Purchases) },
+		};
+
+		var today = DateTime.Now.Date;
+
+		for (int i = 0; i < 5; i++)
+		{
+			XAxisLabels[i] = (today.AddDays(i - 4)).ToString("dd.MM.yyyy");
+		}
+	}
+
+	const int pointsCount = 7;
+	double[] generatePoints(List<GraphPoint> points)
+	{
+		double[] values = new double[7];
+		if (points == null || !points.Any()) return values;
+
+		var today = DateTime.Now.Date;
+		foreach (var p in points)
+		{
+
+			var i = 7 - (today.DayOfYear - p.Date.Date.DayOfYear) - 1;
+			Console.WriteLine(i);
+			values[i] = p.Count;
+		}
+		return values;
+	}
+}

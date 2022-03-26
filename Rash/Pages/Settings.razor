@@ -1,0 +1,56 @@
+@page "/settings"
+@using System.IO;
+
+<h1>Settings</h1>
+
+<label for="cookie">Cookie</label>
+<input @bind="@cookie" type="password" id="cookie" placeholder="itchio cookie">
+<button @onclick="@UpdateCookie">Update</button>
+<br>
+<label for="key">API Key</label>
+<input @bind="@key" type="password" id="key" placeholder="API Key">
+<button @onclick="@UpdateAPIKey">Update</button>
+
+<h1>ADB Devices</h1>
+@foreach (var dev in devs)
+{
+	<h3>
+		@if(UserReadableNames.ContainsKey(dev.Serial))
+			@UserReadableNames[dev.Serial]
+		else
+			@dev.Serial
+	</h3>
+}
+
+@code {
+	List<ADBDevice> devs = new();
+	Dictionary<string,string> UserReadableNames = new();
+	ADB adb = new();
+	protected override async Task OnInitializedAsync()
+	{
+		await foreach (var d in adb.GetDevices())
+		{
+			devs.Add(d);
+			var p = d.Shell("getprop ro.product.model");
+			p.Start();
+			// Do it on a different thread?
+			UserReadableNames[d.Serial] = await p.StandardOutput.ReadLineAsync() ?? d.Serial;
+		}
+	}
+
+	string cookie;
+	string key;
+	void UpdateCookie()
+	{
+		File.WriteAllText("itchio.cookie", cookie);
+		RashClient.Itch.SetCookieToken(cookie);
+		cookie = null;
+	}
+
+	void UpdateAPIKey()
+	{
+		File.WriteAllText("apikey", key);
+		RashClient.Itch.APIKey = key;
+		key = null;
+	}
+}

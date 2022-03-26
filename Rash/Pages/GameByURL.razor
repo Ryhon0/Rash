@@ -1,0 +1,15 @@
+@page "/GameByURL/{url}"
+@inject NavigationManager NavManager
+
+<Spinner>
+</Spinner>
+
+@code{
+	[Parameter]
+	public string url {get;set;}
+	protected override async Task OnInitializedAsync()
+	{
+		long id = await SharpItch.Game.GetIDFromURL(url);
+		NavManager.NavigateTo("/GameByID/" + id, replace: true);
+	}
+}
