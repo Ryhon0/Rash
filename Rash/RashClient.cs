@@ -3,7 +3,7 @@ using SharpItch;
 using System.Text.Json;
 public static class RashClient
 {
-	public static Itch Itch = new(null);
+	public static Itch Itch = new();
 	public static List<OwnedKey> OwnedKeys = new();
 	public static bool OwnedKeysFinished = false;
 
