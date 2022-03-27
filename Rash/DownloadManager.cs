@@ -1,6 +1,7 @@
 namespace Rash;
 using SharpItch;
 using System.Diagnostics;
+using System.Text.Json;
 
 public static class DownloadManager
 {
@@ -13,9 +14,35 @@ public static class DownloadManager
 		var key = RashClient.OwnedKeys.FirstOrDefault(k => k.GameID == gameID)?.ID ?? 0;
 		var upload = (await RashClient.Itch.GetUpload(uploadID, key)).Upload;
 
+		var lib = Library.Libraries.First();
+		LibraryGameInfo gi = lib.Games.FirstOrDefault(g => g.Game.ID == game.ID);
+		if (gi == null)
+		{
+			gi = new LibraryGameInfo()
+			{
+				Game = game
+			};
+			lib.Games.Add(gi);
+			Directory.CreateDirectory(lib.Path + "/" + game.ID);
+			await File.WriteAllTextAsync(lib.Path + "/" + game.ID + "/game.json", JsonSerializer.Serialize(game));
+		}
+
+		LibraryUploadInfo ui = new LibraryUploadInfo()
+		{
+			Upload = upload
+		};
+		Directory.CreateDirectory(lib.Path + "/" + game.ID + "/" + upload.ID);
+		await File.WriteAllTextAsync(lib.Path + "/" + game.ID + "/" + upload.ID + "/upload.json", JsonSerializer.Serialize(ui));
+		gi.Uploads.Add(ui);
+
 		var dl = new GameDownload(game, upload);
 		Downloads.Add(dl);
 		await dl.StartDownload();
+		dl.Downloader.OnFinish += (c, a) =>
+		{
+			ui.DownloadFinished = true;
+			File.WriteAllText(lib.Path + "/" + game.ID + "/" + upload.ID + "/upload.json", JsonSerializer.Serialize(ui));
+		};
 		OnDownloadStarted?.Invoke(dl, EventArgs.Empty);
 	}
 }
@@ -39,30 +66,32 @@ public class GameDownload
 
 		var url = RashClient.Itch.CreateDownloadURL(Upload.ID, uuid, key);
 
-		var gamedir = System.Environment.GetEnvironmentVariable("HOME") + "/Games/" + Game.ID;
+		var gamedir = System.Environment.GetEnvironmentVariable("HOME") + "/Games/Rash/" + Game.ID;
 		var dldir = gamedir + "/" + Upload.ID;
 		Utils.CreateDirectoryWithParents(dldir);
+		var filepath = dldir + "/" + Upload.Filename;
 
-		var dl = new Downloader(url, dldir + "/" + Upload.Filename, RashClient.Itch.HttpClient);
+		var dl = new Downloader(url, filepath, RashClient.Itch.HttpClient);
 		Downloader = dl;
 
-		new Task(async () =>
-		{
-			while (await dl.DownloadChunk())
-			{ }
-		}).Start();
+		if (File.Exists(filepath))
+			dl.progressBytes = new FileInfo(filepath).Length;
+
+		dl.Download();
 	}
 }
 
 public class Downloader
 {
 	public event EventHandler OnProgress;
+	public event EventHandler OnPaused;
 	public event EventHandler OnFinish;
 	public event EventHandler OnError;
 
 	HttpClient http;
 	string url;
 	FileStream output;
+	public string OutputPath => output.Name;
 	public long progressBytes = 0;
 	public long totalBytes = 0;
 	public float Progress => (float)progressBytes / totalBytes;
@@ -83,13 +112,29 @@ public class Downloader
 		else
 			this.http = http;
 
-		File.Delete(dest);
-		output = File.Open(dest, FileMode.CreateNew, FileAccess.Write);
+		output = File.Open(dest, FileMode.Append, FileAccess.Write);
 		output.Seek(0, System.IO.SeekOrigin.End);
+	}
+
+	// Starts a new thread and downloads until it's stops
+	public void Download()
+	{
+		State = DownloaderState.Starting;
+		new Task(async () =>
+		{
+			while (await DownloadChunk())
+			{ }
+		}).Start();
 	}
 
 	public async Task<bool> DownloadChunk()
 	{
+		if (State == DownloaderState.Paused)
+		{
+			OnPaused?.Invoke(this, null);
+			return false;
+		}
+
 		var hr = new HttpRequestMessage(HttpMethod.Get, url);
 
 		var to = Math.Min(totalBytes, progressBytes + chunkSize - 1);
@@ -102,13 +147,13 @@ public class Downloader
 
 		var res = await http.SendAsync(hr);
 
-		if(!res.IsSuccessStatusCode)
+		if (!res.IsSuccessStatusCode)
 		{
 			State = DownloaderState.Error;
+			OnError?.Invoke(this, null);
 			return false;
 		}
 
-		State = DownloaderState.Downloading;
 		progressBytes += (long)res.Content.Headers.ContentLength;
 		totalBytes = (long)res.Content.Headers.ContentRange.Length;
 		await res.Content.CopyToAsync(output);
@@ -118,11 +163,19 @@ public class Downloader
 		ProgressHistory[currentHistoryId] = (long)((long)res.Content.Headers.ContentLength / time);
 		currentHistoryId++;
 		currentHistoryId %= ProgressHistoryLength;
+
 		OnProgress?.Invoke(this, null);
-		
+
+		if (State == DownloaderState.Paused)
+		{
+			OnPaused?.Invoke(this, null);
+			return false;
+		}
+		else
+			State = DownloaderState.Downloading;
 
 		var next = progressBytes != totalBytes;
-		if(!next)
+		if (!next)
 		{
 			State = DownloaderState.Finished;
 			OnFinish?.Invoke(this, null);

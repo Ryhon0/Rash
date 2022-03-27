@@ -34,7 +34,7 @@
 
 @foreach (var dl in DownloadManager.Downloads)
 {
-	<div>
+<div>
 	<img src="@dl.Game.CoverURL" width="100px">
 	<h4>@dl.Game.Title</h4>
 	<div>@(dl.Upload.DisplayName??dl.Upload.Filename)</div>
@@ -43,7 +43,7 @@
 		<div>
 			<span>@((dl.Downloader.Progress * 100).ToString("0") + "%")</span>
 			<span>@(dl.Downloader.progressBytes.BytesToString()) / @dl.Downloader.totalBytes.BytesToString()</span>
-			<span>@dl.Downloader.DownloadSpeed.BytesToString())/s</span>
+			<span>@dl.Downloader.DownloadSpeed.BytesToString()/s</span>
 		</div>
 		<progress value="@dl.Downloader.Progress" max="1">@dl.Downloader.Progress</progress>
 	}
@@ -53,6 +53,12 @@
 	}
 </div>
 }
+
+<div class="nav-item px-3">
+			<NavLink class="nav-link" href="downloads">
+				<span class="oi oi-data-transfer-download" aria-hidden="true"></span> Downloads
+			</NavLink>
+		</div>
 
 @code {
 	private bool collapseNavMenu = true;
@@ -69,17 +75,17 @@
 		DownloadManager.OnDownloadStarted += (dlo, a) =>
 		{
 			var dl = (GameDownload)dlo;
-			this.InvokeAsync(()=>StateHasChanged());
+			UpdateView(null, null);
 
-			dl.Downloader.OnProgress += (e,a)=>
-			{
-				this.InvokeAsync(()=>StateHasChanged());
-			};
-
-			dl.Downloader.OnFinish += (e,a)=>
-			{
-				this.InvokeAsync(()=>StateHasChanged());
-			};
+			dl.Downloader.OnProgress += UpdateView;
+			dl.Downloader.OnFinish += UpdateView;
+			dl.Downloader.OnError += UpdateView;
+			dl.Downloader.OnPaused += UpdateView;
 		};
+	}
+	
+	void UpdateView(object sender, EventArgs args)
+	{
+		this.InvokeAsync(()=>StateHasChanged());
 	}
 }

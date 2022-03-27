@@ -1,5 +1,24 @@
 @page "/library"
 
+<h1>Installed</h1>
+<div>
+	@foreach(var lib in Rash.Library.Libraries)
+	{
+		@foreach (var g in lib.Games)
+		{
+			<h3>@g.Game.Title</h3>
+			<img src="@g.Game.CoverURL">
+
+			@foreach (var up in g.Uploads)
+			{
+				<p>@(up.Upload.DisplayName??up.Upload.Filename)</p>
+				<p>Downloaded: @up.DownloadFinished</p>
+				<p>Installed: @up.ExtractFinished</p>
+			}
+		}
+	}
+</div>
+
 <h1>Library</h1>
 
 <style>

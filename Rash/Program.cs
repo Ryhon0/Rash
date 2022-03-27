@@ -7,7 +7,7 @@ using System.Text.Json;
 
 
 RashClient.Config = Config.Load();
-RashClient.Config.Setup();
+await RashClient.Config.Setup();
 
 var builder = WebApplication.CreateBuilder(args);
 

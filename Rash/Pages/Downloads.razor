@@ -1,0 +1,77 @@
+@page "/Downloads"
+@using System.Diagnostics
+<h1>Downloads</h1>
+@foreach (var dl in DownloadManager.Downloads)
+{
+<div>
+	<img src="@dl.Game.CoverURL" width="300px">
+	<br>
+	<progress style="width: 300px;" value="@dl.Downloader.Progress" max="1">@dl.Downloader.Progress</progress>
+	<h4>@dl.Game.Title</h4>
+
+	@if(dl.Downloader.State == DownloaderState.Downloading)
+	{
+		<button @onclick="()=> {dl.Downloader.State = DownloaderState.Paused;}"><span class="oi oi-media-pause"></span></button>
+	}
+	else if(dl.Downloader.State == DownloaderState.Paused)
+	{
+		<button @onclick="()=> {dl.Downloader.Download();}"><span class="oi oi-media-play"></span></button>
+	}
+
+	<div>@(dl.Upload.DisplayName??dl.Upload.Filename)</div>
+	@if(dl.Downloader.State == DownloaderState.Downloading)
+	{
+		<div>
+			<span>@((dl.Downloader.Progress * 100).ToString("0") + "%")</span>
+			<span>@(dl.Downloader.progressBytes.BytesToString()) / @dl.Downloader.totalBytes.BytesToString()</span>
+			<span>@dl.Downloader.DownloadSpeed.BytesToString()/s</span>
+		</div>
+	}
+	else
+	{
+		<div>@dl.Downloader.State</div>
+	}
+	
+	@if(dl.Downloader.State == DownloaderState.Finished)
+	{
+		<a href="javascript:void(0)" @onclick="()=>{openShell(dl.Downloader.OutputPath);}">Open folder</a>
+	}
+</div>
+}
+
+@code{
+	public void openShell(string path)
+	{
+		var pi = new ProcessStartInfo("xdg-open", Directory.GetParent(path).FullName);
+		var p = new Process();
+		p.StartInfo = pi;
+		p.Start();
+	}
+
+	protected override void OnInitialized()
+	{
+		DownloadManager.OnDownloadStarted += (dlo, a) =>
+		{
+			var dl = (GameDownload)dlo;
+			UpdateView(null, null);
+
+			dl.Downloader.OnProgress += UpdateView;
+			dl.Downloader.OnFinish += UpdateView;
+			dl.Downloader.OnError += UpdateView;
+			dl.Downloader.OnPaused += UpdateView;
+		};
+
+		foreach(var dl in DownloadManager.Downloads)
+		{
+			dl.Downloader.OnProgress += UpdateView;
+			dl.Downloader.OnFinish += UpdateView;
+			dl.Downloader.OnError += UpdateView;
+			dl.Downloader.OnPaused += UpdateView;
+		}
+	}
+	
+	void UpdateView(object sender, EventArgs args)
+	{
+		this.InvokeAsync(()=>StateHasChanged());
+	}
+}

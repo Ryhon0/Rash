@@ -21,10 +21,20 @@ public class Config
 		File.WriteAllText(DefaultConfigPath, JsonSerializer.Serialize(this));
 	}
 
-	public void Setup()
+	public async Task Setup()
 	{
 		RashClient.Itch.SetCookieToken(ItchCookie);
 		RashClient.Itch.APIKey = ItchAPIKey;
+
+		foreach(var lp in LibraryPaths)
+		{
+			var li = new LibraryInfo()
+			{
+				Path = lp
+			};
+
+			await li.Discover();
+		}
 	}
 
 	public static Config Load()
