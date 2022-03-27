@@ -7,12 +7,11 @@ using System.Text.Json.Serialization;
 namespace SharpItch;
 public partial class Itch
 {
-	public Itch(string key)
+	public Itch()
 	{
-		Key = key;
+		HttpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.itch.v2");
 	}
 
-	public string Key;
 	public string BaseAPIPath = "https://api.itch.io/";
 
 	public HttpClient HttpClient = new();

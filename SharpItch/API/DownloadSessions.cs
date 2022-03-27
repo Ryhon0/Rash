@@ -25,15 +25,11 @@ partial class Itch
 
 	public async Task<ScannedArchiveResponse> GetUploadScannedArchive(long uploadID, long downloadKeyId = 0, string password = null, string secret = null)
 	{
-		var rb = new RequestBuilder(BaseAPIPath + "uploads/" + uploadID + "/scanned-archive")
+		return await new RequestBuilder(BaseAPIPath + "uploads/" + uploadID + "/scanned-archive")
 			.AddLongIfNotZero("download_key_id", downloadKeyId)
 			.AddStringIfNotEmpty("password", password)
-			.AddStringIfNotEmpty("secret", secret);
-
-
-		Console.WriteLine(rb.BuildURL());
-
-		return await rb.Get<ScannedArchiveResponse>(HttpClient);
+			.AddStringIfNotEmpty("secret", secret)
+			.Get<ScannedArchiveResponse>(HttpClient);
 	}
 }
 
