@@ -22,4 +22,14 @@ Only game downloads of type upload are supported, builds are not supported (game
 ## Known issues
 * Opening the library with a lot of owned products (~1000) will cause the browser to freeze.  
 * The itch.io API is limited, some features can only be accessed using the store page. (e.g. game descriptions, download files you don't have a license for, tags and more)  
-* `/GameByUrl/{url}` endpoint doesn't work in new tabs.
+* `/GameByUrl/{url}` endpoint doesn't work in new tabs.  
+
+# Contributing
+If you'd like to contribute, please follow the rules bellow:
+* Use tabs instead of space for indentation  
+* Keep external dependencies to minimum  
+* Use static classes instead of services/dependency injection  
+* Use PascalCase for classes, interfaces, public members and all methods  
+* Use camelCase for private members and function arguments.  
+* Do not use underscore prefixes for private members, do not use the private keyword, as it's the defualt accessibility level  
+* Do not open curly braces for one-line statements  
