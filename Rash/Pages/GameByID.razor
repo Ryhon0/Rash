@@ -8,7 +8,37 @@
 else
 {
 	<a href="@game.URL">@game.URL</a>
-	<GameTile Game="@game"></GameTile>
+	<h1>@game.Title</h1>
+	<p>@game.Classification by <a href="@game.User.URL">@game.User.DisplayName</a></p>
+	<img src="@game.CoverURL">
+
+	@if(game.Embed != null)
+	{
+		@if(iframeurl == null)
+		{
+			<br>
+			<button @onclick="@PlayInBrowser">Play in browser</button>
+		}
+		else
+		{
+			<iframe style="width: width: @(game.Embed.Width)px; height: @(game.Embed.Height)px" mozallowfullscreen="true" allow="autoplay; fullscreen *; geolocation; microphone; camera; midi; monetization; xr-spatial-tracking; gamepad; gyroscope; accelerometer; xr" frameborder="0" msallowfullscreen="true" scrolling="no" allowfullscreen="true" webkitallowfullscreen="true" id="game_drop" allowtransparency="true" 
+			src="@iframeurl">
+			</iframe>
+		}
+
+		@code
+		{
+			string iframeurl;
+			async Task PlayInBrowser()
+			{
+				var up = uploads.First(u=>u.Platforms.HasFlag(Platforms.Web));
+				var sa = (await RashClient.Itch.GetUploadScannedArchive(up.ID)).ScannedArchive;
+
+				var file = sa.LaunchTargets.First()["path"].ToString();
+				// This URL probably should be obtained from the download URL
+				iframeurl = $"https://v6p9d9t4.ssl.hwcdn.net/html/{up.ID}/{file}";
+			}
+		}
 
 	@if (uploads == null)
 	{
