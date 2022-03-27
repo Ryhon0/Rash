@@ -10,4 +10,13 @@ public static class Utils
 		double num = Math.Round(bytes / Math.Pow(1024, place), 1);
 		return (Math.Sign(byteCount) * num).ToString() + suf[place];
 	}
+
+	public static void CreateDirectoryWithParents(string dir)
+	{
+		if(Directory.Exists(dir)) return;
+
+		var parent = Directory.GetParent(dir);
+		CreateDirectoryWithParents(parent.FullName);
+		Directory.CreateDirectory(dir);
+	}
 }

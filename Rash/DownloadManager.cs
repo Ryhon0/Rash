@@ -40,11 +40,8 @@ public class GameDownload
 		var url = RashClient.Itch.CreateDownloadURL(Upload.ID, uuid, key);
 
 		var gamedir = System.Environment.GetEnvironmentVariable("HOME") + "/Games/" + Game.ID;
-		if(!Directory.Exists(gamedir))
-			Directory.CreateDirectory(gamedir);
 		var dldir = gamedir + "/" + Upload.ID;
-		if(!Directory.Exists(dldir))
-			Directory.CreateDirectory(dldir);
+		Utils.CreateDirectoryWithParents(dldir);
 
 		var dl = new Downloader(url, dldir + "/" + Upload.Filename, RashClient.Itch.HttpClient);
 		Downloader = dl;
