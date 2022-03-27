@@ -39,6 +39,7 @@ else
 				iframeurl = $"https://v6p9d9t4.ssl.hwcdn.net/html/{up.ID}/{file}";
 			}
 		}
+	}
 
 	@if (uploads == null)
 	{
@@ -46,6 +47,12 @@ else
 	}
 	else
 	{
+		<h2>Downloads</h2>
+		@if(game.PriceCents != 0 && !RashClient.OwnedKeys.Any(x=>x.GameID == game.ID))
+		{
+			<p>You may need to purchase this item to view downloads</p>
+		}
+
 		@foreach (var upload in uploads)
 		{
 			<a href="javascript:void(0);" @onclick="@(e=>DownloadUpload(upload))">
