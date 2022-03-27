@@ -42,8 +42,8 @@
 	{
 		<div>
 			<span>@((dl.Downloader.Progress * 100).ToString("0") + "%")</span>
-			<span>@(Downloader.BytesToString(dl.Downloader.progressBytes)) / @(Downloader.BytesToString(dl.Downloader.totalBytes))</span>
-			<span>@(Downloader.BytesToString(dl.Downloader.DownloadSpeed))/s</span>
+			<span>@(dl.Downloader.progressBytes.BytesToString()) / @dl.Downloader.totalBytes.BytesToString()</span>
+			<span>@dl.Downloader.DownloadSpeed.BytesToString())/s</span>
 		</div>
 		<progress value="@dl.Downloader.Progress" max="1">@dl.Downloader.Progress</progress>
 	}

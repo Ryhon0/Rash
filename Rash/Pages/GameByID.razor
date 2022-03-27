@@ -27,7 +27,7 @@ else
 				{
 					<PlatformIcons Platforms="@upload.Platforms"></PlatformIcons>
 				}
-				<span>@(upload.DisplayName??upload.Filename) (@Downloader.BytesToString(upload.Size))</span>
+				<span>@(upload.DisplayName??upload.Filename) (@upload.Size.BytesToString()) - id: @upload.ID</span>
 			</a>
 			<br>
 		}
