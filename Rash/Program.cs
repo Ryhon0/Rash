@@ -7,12 +7,6 @@ using System.IO;
 using System.Text.Json;
 
 
-if(File.Exists("itchio.cookie"))
-	RashClient.Itch.SetCookieToken(File.ReadAllText("itchio.cookie"));
-
-if(File.Exists("apikey"))
-	RashClient.Itch.APIKey = File.ReadAllText("apikey");
-
 /*
 var okr = await RashClient.Itch.GetOwnedKeys();
 var key = okr.OwnedKeys[1];
@@ -37,6 +31,8 @@ foreach(var u in ups.Uploads)
 }
 return;
 */
+RashClient.Config = Config.Load();
+RashClient.Config.Setup();
 
 var builder = WebApplication.CreateBuilder(args);
 

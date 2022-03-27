@@ -42,14 +42,16 @@
 	string key;
 	void UpdateCookie()
 	{
-		File.WriteAllText("itchio.cookie", cookie);
+		RashClient.Config.ItchCookie = cookie;
+		RashClient.Config.Save();
 		RashClient.Itch.SetCookieToken(cookie);
 		cookie = null;
 	}
 
 	void UpdateAPIKey()
 	{
-		File.WriteAllText("apikey", key);
+		RashClient.Config.ItchAPIKey = key;
+		RashClient.Config.Save();
 		RashClient.Itch.APIKey = key;
 		key = null;
 	}
