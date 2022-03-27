@@ -34,13 +34,13 @@ else
 	<div style="display: flex; flex-wrap:wrap;">
 	@foreach (var g in games)
 	{
-		<div>
+		<a href="/GameByID/@g.ID">
 			<img src="@g.CoverURL">
 			<h3>@g.Title</h3>
 			<span class="oi oi-eye" aria-hidden="true"></span> @g.ViewsCount
 			<span class="oi oi-data-transfer-download" aria-hidden="true"></span> @g.DownloadsCount
 			<span class="oi oi-dollar" aria-hidden="true"></span> @g.PurchasesCount
-		</div>
+		</a>
 	}
 	</div>
 }
