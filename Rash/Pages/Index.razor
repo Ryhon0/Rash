@@ -34,7 +34,6 @@
 
 @code {
 	List<Game> games = new();
-	string url = null;
 	ItchGameFeedParameters p = new()
 	{
 		Platforms = Platforms.Linux | Platforms.Windows | Platforms.Android,
@@ -43,10 +42,6 @@
 		// Can't decide 😢
 	};
 	int page = 1;
-	protected override void OnInitialized()
-	{
-		url = RashClient.Itch.BuildGameFeedURL(p);
-	}
 
 	bool downloading;
 	async Task FetchGames()
@@ -54,8 +49,8 @@
 		if(downloading) return;
 		downloading = true;
 
-		var u = url + "?page=" + page;
-		games.AddRange((await RashClient.Itch.ReadFeed(u)).ToList());
+		var url = RashClient.Itch.BuildGameFeedURL(p, page);
+		games.AddRange((await RashClient.Itch.ReadFeed(url)).ToList());
 		
 		downloading = false;
 		page++;
