@@ -37,7 +37,10 @@
 	string url = null;
 	ItchGameFeedParameters p = new()
 	{
-		Platforms = Platforms.Linux | Platforms.Android | Platforms.Windows,
+		Platforms = Platforms.Linux | Platforms.Windows | Platforms.Android,
+		ExcludedTag = "horror",
+		// ExcludedTag = "visual-novel",
+		// Can't decide 😢
 	};
 	int page = 1;
 	protected override void OnInitialized()
