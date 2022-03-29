@@ -32,9 +32,20 @@ else
 			async Task PlayInBrowser()
 			{
 				var up = uploads.First(u=>u.Platforms.HasFlag(Platforms.Web));
-				var sa = (await RashClient.Itch.GetUploadScannedArchive(up.ID)).ScannedArchive;
+				ScannedArchive sa = (await RashClient.Itch.GetUploadScannedArchive(up.ID)).ScannedArchive;
+				int tries = 0;
+				while(sa.ExctractedSize == null)
+				{
+					if(tries == 5) throw new Exception("Scanned archive returned null after 5 tries");
 
-				var file = sa.LaunchTargets.First()["path"].ToString();
+					await Task.Delay(2000);
+					sa = (await RashClient.Itch.GetUploadScannedArchive(up.ID)).ScannedArchive;
+					tries++;
+				}
+
+				if(sa.LaunchTargets == null) return;
+				var file = sa.LaunchTargets.FirstOrDefault()["path"].ToString();
+				if(file == null) return;
 				// This URL probably should be obtained from the download URL
 				iframeurl = $"https://v6p9d9t4.ssl.hwcdn.net/html/{up.ID}/{file}";
 			}
