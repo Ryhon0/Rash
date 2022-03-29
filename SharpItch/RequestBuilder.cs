@@ -10,6 +10,9 @@ public class RequestBuilder
 {
 	string Url;
 	List<(string Key, string Value)> Parameters = new();
+	List<(string Key, string Value)> Headers = new();
+	List<(string Key, string Value)> Cookies = new();
+	byte[] Body;
 
 	public string BuildURL()
 	{
@@ -26,6 +29,30 @@ public class RequestBuilder
 	public RequestBuilder(string url, params string[] url_params)
 	{
 		Url = string.Format(url, url_params);
+	}
+
+	public RequestBuilder AddCookie(string key, string value)
+	{
+		Cookies.Add((key, value));
+		return this;
+	}
+
+	public RequestBuilder AddHeader(string key, string value)
+	{
+		Headers.Add((key, value));
+		return this;
+	}
+
+	public RequestBuilder WithBody(byte[] body)
+	{
+		Body = body;
+		return this;
+	}
+
+	public RequestBuilder WithBody(string body)
+	{
+		Body = System.Text.Encoding.UTF8.GetBytes(body);
+		return this;
 	}
 
 	public RequestBuilder AddLong(string key, long value)
@@ -69,29 +96,55 @@ public class RequestBuilder
 
 	T HandleResponse<T>(HttpResponseMessage res)
 	{
-			JsonSerializerOptions opts = new();
-			opts.Converters.Add(new MyArrayConverter());
+		JsonSerializerOptions opts = new();
+		opts.Converters.Add(new LuaArrayConverter());
 
-			return JsonSerializer.Deserialize<T>(res.Content.ReadAsStringAsync().Result, opts);
+		return JsonSerializer.Deserialize<T>(res.Content.ReadAsStringAsync().Result, opts);
 	}
+
+	public HttpRequestMessage Build()
+	{
+		HttpRequestMessage req = new();
+		req.RequestUri = new Uri(BuildURL());
+		foreach (var h in Headers)
+			req.Headers.Add(h.Key, h.Value);
+
+		if (Cookies.Any())
+			req.Headers.Add("Cookie", string.Join("; ", Cookies.Select(c => $"{c.Key}={c.Value}")));
+
+		if (Body != null && Body.Length != 0)
+			req.Content = new ByteArrayContent(Body);
+
+		return req;
+	}
+
 	public async Task<T> Get<T>(HttpClient http = null)
 	{
+		var req = Build();
+		req.Method = HttpMethod.Get;
+
 		if (http == null) http = new();
 
-		var res = await http.GetAsync(BuildURL());
+		var res = await http.SendAsync(req);
 		return HandleResponse<T>(res);
 	}
 
 	public async Task<T> Post<T>(HttpClient http = null)
 	{
+		var req = Build();
+		req.Method = HttpMethod.Post;
+
 		if (http == null) http = new();
 
-		var res = await http.PostAsync(BuildURL(), null);
+		var res = await http.SendAsync(req);
 		return HandleResponse<T>(res);
 	}
 }
 
-public class MyArrayConverter : JsonConverter<object>
+/// <summary>
+/// itch.io API returns empty JSON objects instead of empty arrays, this is a workaround.
+/// </summary>
+public class LuaArrayConverter : JsonConverter<object>
 {
 	public override bool CanConvert(Type t)
 	{
@@ -107,7 +160,7 @@ public class MyArrayConverter : JsonConverter<object>
 		{
 			var d = reader.CurrentDepth;
 			reader.Read();
-			while(reader.CurrentDepth != d)
+			while (reader.CurrentDepth != d)
 			{
 				reader.Read();
 			}

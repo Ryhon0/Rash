@@ -12,7 +12,9 @@ partial class Itch
 	/// <returns></returns>
 	public async Task<UploadResult> GetUpload(long uploadID, long downloadKeyId = 0, string password = null, string secret = null)
 	{
-		var ur = await new RequestBuilder(BaseAPIPath + "uploads/" + uploadID)
+		var ur = await new RequestBuilder(BaseAPIURLV2 + "uploads/" + uploadID)
+			.AddV2AcceptHeader()
+			.AddItchCookie(ItchCookie)
 			.AddLongIfNotZero("download_key_id", downloadKeyId)
 			.AddStringIfNotEmpty("password", password)
 			.AddStringIfNotEmpty("secret", secret)
@@ -40,7 +42,9 @@ partial class Itch
 	}
 	public async Task<ListUploadsResult> ListUploads(long gameID, long downloadKeyId = 0, string password = null, string secret = null)
 	{
-		var ur = await new RequestBuilder(BaseAPIPath + "games/" + gameID + "/uploads")
+		var ur = await new RequestBuilder(BaseAPIURLV2 + "games/" + gameID + "/uploads")
+			.AddV2AcceptHeader()
+			.AddItchCookie(ItchCookie)
 			.AddLongIfNotZero("download_key_id", downloadKeyId)
 			.AddStringIfNotEmpty("password", password)
 			.AddStringIfNotEmpty("secret", secret)
@@ -65,7 +69,7 @@ partial class Itch
 			}
 			u.ExtensionData = null;
 
-			if(u.Type == "html")
+			if (u.Type == "html")
 			{
 				u.Platforms |= Platforms.Web;
 			}

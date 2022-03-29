@@ -37,11 +37,16 @@ partial class Itch
 		}
 
 		if (p.Tags != null && p.Tags.Any())
-			url += "/" + string.Join("/", p.Tags.Select(t => "tag-" + t.Replace(' ', '-')));
+			url += "/" + string.Join("/", p.Tags.Select(t => "tag-" + t));
 
 		// TODO do everything else
 
-		return url + ".xml";
+		var rb = new RequestBuilder(url + ".xml");
+		if(p.ExcludedTag != null)
+			rb.AddString("exclude", "tg." + p.ExcludedTag);
+		rb.AddLong("page", page);
+
+		return rb.BuildURL() ;
 	}
 	public async Task<List<Game>> ReadFeed(string url)
 	{
@@ -142,6 +147,7 @@ public class ItchGameFeedParameters
 	public Platforms Platforms { get; set; }
 	public Price Price;
 	public List<string> Tags;
+	public string ExcludedTag;
 }
 
 public enum Price

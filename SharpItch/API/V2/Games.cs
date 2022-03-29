@@ -5,7 +5,9 @@ partial class Itch
 {
 	public async Task<GamesResult> GetGame(long gameID)
 	{
-		return await new RequestBuilder(BaseAPIPath + "games/" + gameID)
+		return await new RequestBuilder(BaseAPIURLV2 + "games/" + gameID)
+			.AddV2AcceptHeader()
+			.AddItchCookie(ItchCookie)
 			.Get<GamesResult>(HttpClient);
 	}
 }

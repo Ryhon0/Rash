@@ -6,7 +6,9 @@ partial class Itch
 	/// Returns the current profile.
 	public async Task<GetProfileResponse> GetProfile()
 	{
-		return await new RequestBuilder(BaseAPIPath + "profile")
+		return await new RequestBuilder(BaseAPIURLV2 + "profile")
+			.AddV2AcceptHeader()
+			.AddItchCookie(ItchCookie)
 			.Get<GetProfileResponse>(HttpClient);
 	}
 }

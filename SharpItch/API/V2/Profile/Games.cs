@@ -10,7 +10,9 @@ partial class Itch
 	/// </summary>
 	public async Task<ItchGamesResponse> GetGames()
 	{
-		var res = await new RequestBuilder(BaseAPIPath + "profile/games")
+		var res = await new RequestBuilder(BaseAPIURLV2 + "profile/games")
+			.AddV2AcceptHeader()
+			.AddItchCookie(ItchCookie)
 			.Get<ItchGamesResponse>(HttpClient);
 
 		foreach(var g in res.Games)

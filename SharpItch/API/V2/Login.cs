@@ -43,17 +43,12 @@ public partial class Itch
 		string recaptcha_response = null, bool force_recaptcha = false,
 		string source = "desktop")
 	{
-		return await new RequestBuilder(BaseAPIPath + "login")
+		return await new RequestBuilder(BaseAPIURLV2 + "login")
 			.AddString("source", source)
 			.AddString("username", username)
 			.AddString("password", password)
 			.AddStringIfNotEmpty("recaptcha_response", recaptcha_response)
 			.AddBoolIfTrue("force_recaptcha", force_recaptcha)
 			.Post<ItchLoginResponse>(HttpClient);
-	}
-
-	public void SetCookieToken(string token)
-	{
-		HttpClient.DefaultRequestHeaders.Add("Cookie", "itchio="+token);
 	}
 }

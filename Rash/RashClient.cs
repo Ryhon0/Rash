@@ -3,6 +3,7 @@ using SharpItch;
 using System.Text.Json;
 public static class RashClient
 {
+	public static bool LoggedIn = false;
 	public static Itch Itch = new();
 	public static List<OwnedKey> OwnedKeys = new();
 	public static bool OwnedKeysFinished = false;
@@ -23,7 +24,13 @@ public class Config
 
 	public async Task Setup()
 	{
-		RashClient.Itch.SetCookieToken(ItchCookie);
+		if(ItchCookie != null) RashClient.LoggedIn = true;
+		if(ItchAPIKey == null)
+		{
+			// TODO: generate subkey
+		}
+
+		RashClient.Itch.ItchCookie = ItchCookie;
 		RashClient.Itch.APIKey = ItchAPIKey;
 
 		foreach(var lp in LibraryPaths)

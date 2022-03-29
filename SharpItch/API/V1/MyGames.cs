@@ -6,14 +6,7 @@ namespace SharpItch;
 
 partial class Itch
 {
-	public string APIKey;
-	public string BaseServerAPIPath = "https://itch.io/api";
-	public int ServerAPIVersion = 1;
-
-	string BuildServerURL(string endpoint)
-	{
-		return $"{BaseServerAPIPath}/{ServerAPIVersion}/{APIKey}/{endpoint}";
-	}
+	
 }
 /*
 

@@ -91,7 +91,7 @@ public class Game
 			}
 		}
 
-		ExtensionData = null;
+		// ExtensionData = null;
 	}
 
 	public static async Task<long> GetIDFromURL(string url)

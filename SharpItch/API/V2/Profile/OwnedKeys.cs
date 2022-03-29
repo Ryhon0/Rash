@@ -5,7 +5,9 @@ partial class Itch
 {
 	public async Task<OwnedKeysResult> GetOwnedKeys(long page = 1)
 	{
-		var okr = await new RequestBuilder(BaseAPIPath + "profile/owned-keys")
+		var okr = await new RequestBuilder(BaseAPIURLV2 + "profile/owned-keys")
+			.AddV2AcceptHeader()
+			.AddItchCookie(ItchCookie)
 			.AddLong("page", page)
 			.Get<OwnedKeysResult>(HttpClient);
 
