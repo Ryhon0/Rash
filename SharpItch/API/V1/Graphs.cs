@@ -5,7 +5,7 @@ partial class Itch
 {
 	public async Task<GraphsResponse> GetGraphs()
 	{
-		return await new RequestBuilder(BuildServerURL("my-games/graphs"))
+		return await new RequestBuilder(BuildV1ApiURL("my-games/graphs"))
 			.AddToken(this)
 			.Get<GraphsResponse>(HttpClient);
 	}
