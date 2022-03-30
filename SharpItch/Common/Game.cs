@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-public class Game
+public class Game : IJsonOnDeserialized
 {
 	[JsonPropertyName("id")]
 	public long ID { get; set; }
@@ -28,6 +28,8 @@ public class Game
 	public GameEmbedData Embed { get; set; }
 	[JsonPropertyName("cover_url")]
 	public string CoverURL { get; set; }
+	[JsonPropertyName("still_cover_url")]
+	public string StillCoverURL { get; set; }
 	[JsonPropertyName("created_at")]
 	public DateTime CreatedAt { get; set; }
 	[JsonPropertyName("published_at")]
@@ -61,13 +63,30 @@ public class Game
 	[JsonExtensionData]
 	public Dictionary<string, JsonElement> ExtensionData { get; set; }
 
-	public void ProcessExtensionData()
+	public static async Task<long> GetIDFromURL(string url)
+	{
+		string html;
+		using (var http = new HttpClient())
+		{
+			var res = await http.GetAsync(url);
+			html = await res.Content.ReadAsStringAsync();
+		}
+
+		// Very lazy, better implementation would be nice
+		var idrx = new Regex("<meta content=\\\"games/(?<id>\\d*)\\\" name=\\\"itch:path\\\"/>");
+		var m = idrx.Match(html);
+		long id = long.Parse(m.Groups[1].Value);
+		return id;
+	}
+
+	public void OnDeserialized()
 	{
 		Platforms = PlatformHelper.FromTraits(ExtensionData);
 
 		if (new[] { "html", "unity", "flash" }.Contains(Type))
 			Platforms |= Platforms.Web;
 
+		// The V2 way
 		if (ExtensionData.ContainsKey("traits"))
 		{
 			var traits = ExtensionData["traits"];
@@ -91,23 +110,26 @@ public class Game
 			}
 		}
 
-		// ExtensionData = null;
-	}
-
-	public static async Task<long> GetIDFromURL(string url)
-	{
-		string html;
-		using (var http = new HttpClient())
+		// The V1 way
+		foreach (var v in new (string, Platforms)[]
 		{
-			var res = await http.GetAsync(url);
-			html = await res.Content.ReadAsStringAsync();
+			("android", Platforms.Android),
+			("linux", Platforms.Linux),
+			("windows", Platforms.Windows),
+			("osx", Platforms.Windows),
+		})
+		{
+			if(ExtensionData.ContainsKey("p_"+v.Item1) && ExtensionData["p_"+v.Item1].GetBoolean())
+				Platforms |= v.Item2;
 		}
+		if(ExtensionData.ContainsKey("in_press_system") && ExtensionData["in_press_system"].GetBoolean())
+			IsInPressSystem = true;
+		if(ExtensionData.ContainsKey("has_demo") && ExtensionData["has_demo"].GetBoolean())
+			HasDemo = true;
+		if(ExtensionData.ContainsKey("can_be_bought") && ExtensionData["can_be_bought"].GetBoolean())
+			CanBeBought = true;
 
-		// Very lazy, better implementation would be nice
-		var idrx = new Regex("<meta content=\\\"games/(?<id>\\d*)\\\" name=\\\"itch:path\\\"/>");
-		var m = idrx.Match(html);
-		long id = long.Parse(m.Groups[1].Value);
-		return id;
+		ExtensionData = null;
 	}
 }
 

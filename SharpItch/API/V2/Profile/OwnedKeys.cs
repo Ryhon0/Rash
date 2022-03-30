@@ -11,8 +11,6 @@ partial class Itch
 			.AddLong("page", page)
 			.Get<OwnedKeysResult>(HttpClient);
 
-		foreach (var k in okr.OwnedKeys)
-			k.Game.ProcessExtensionData();
 		return okr;
 	}
 }

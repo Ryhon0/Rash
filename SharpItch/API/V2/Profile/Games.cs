@@ -15,9 +15,6 @@ partial class Itch
 			.AddItchCookie(ItchCookie)
 			.Get<ItchGamesResponse>(HttpClient);
 
-		foreach(var g in res.Games)
-			g.ProcessExtensionData();
-
 		return res;
 	}
 }
