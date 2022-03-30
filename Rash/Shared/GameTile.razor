@@ -53,38 +53,3 @@
 
 	string redirecturl => Game.ID == 0 ? ("/GameByURL/" + System.Net.WebUtility.UrlEncode(Game.URL)) : ("/GameByID/" + Game.ID); 
 }
-
-
-<style>
-	.game-feed {
-		width: 320px;
-		height: 320px;
-		margin: 7px;
-	}
-
-	.game-text {
-		width: 100%;
-		display: flex;
-		flex-direction: row;
-	}
-
-	.game-title {
-		flex-grow: 1;
-	}
-
-	.game-sale {
-		padding: 4px;
-		border-radius: 7px;
-		color: black;
-		background-color: greenyellow;
-	}
-
-	.cover-feed {
-		width: 315px;
-		height: 250px;
-		background-image: url("/cover-placeholder.png");
-		background-color: ;
-		background-position: center;
-		background-size: cover;
-	}
-</style>
