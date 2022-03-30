@@ -11,6 +11,8 @@ public class User
 	public string URL { get; set; }
 	[JsonPropertyNameAttribute("cover_url")]
 	public string CoverURL { get; set; }
+	[JsonPropertyNameAttribute("still_cover_url")]
+	public string StillCoverURL { get; set; }
 	[JsonPropertyNameAttribute("username")]
 	public string Username { get; set; }
 }
