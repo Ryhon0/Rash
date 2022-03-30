@@ -2,7 +2,9 @@
 	<div class="cover-feed">
 		@if (Game.CoverURL != null)
 		{
-			<div class="cover-feed" style="background-image: url(@Game.CoverURL)">
+			<div class="cover-feed" style="background-image: url(@(Game.StillCoverURL ?? Game.CoverURL))"
+				onmouseover="this.style.backgroundImage = 'url(@Game.CoverURL)'"
+				onmouseleave="this.style.backgroundImage = 'url(@(Game.StillCoverURL ?? Game.CoverURL))'">
 			</div>
 		}
 	</div>
