@@ -103,23 +103,20 @@
 <button @onclick="GenerateFilters">Searchs</button>
 
 <div style="display: flex; flex-wrap:wrap; width: 100%; justify-content:center;">
-	<InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="(e) => FetchGames()">
-		@foreach (var k in RashClient.OwnedKeys)
+	@foreach (var k in RashClient.CachedKeys)
+	{
+		@if (Filter(k))
 		{
-			@if (Filter(k))
-			{
-				<GameTile Game="@k.Game" ShowPrice=false></GameTile>
-			}
+			<GameTile Game="@k.Game" ShowPrice=false></GameTile>
 		}
-
-		@if (downloading && !RashClient.OwnedKeysFinished)
-		{
-			<Spinner></Spinner>
-		}
-		<span id="observerTarget"></span>
-	</InfiniteScroll>
+	}
+	@if (!RashClient.KeyDownloadFinished)
+	{
+		<Spinner></Spinner>
+	}
+	<span id="observerTarget"></span>
 </div>
-@if (RashClient.OwnedKeysFinished)
+@if (RashClient.KeyDownloadFinished)
 {
 	<div style="display: flex; width: 100%; justify-content:center;">
 	<img src="killroy.svg">
@@ -127,30 +124,6 @@
 }
 
 @code {
-	protected override async Task OnInitializedAsync()
-	{
-		if (downloading || RashClient.OwnedKeysFinished) return;
-		downloading = true;
-
-		while (!RashClient.OwnedKeysFinished)
-		{
-			var okr = await RashClient.Itch.GetOwnedKeys(page);
-			if (okr.OwnedKeys.Count == 0)
-			{
-				RashClient.OwnedKeysFinished = true;
-			}
-			if(okr.OwnedKeys.Count > 0)
-				RashClient.OwnedKeys.AddRange(okr.OwnedKeys);
-			page++;
-		}
-
-		downloading = false;
-	}
-
-	static int page = 1;
-
-	bool downloading = false;
-
 	bool filterPlatformWindows = true;
 	bool filterPlatformLinux = true;
 	bool filterPlatformMac = true;
@@ -214,27 +187,5 @@
 		if (filterPlatformiOS) filterPlatform |= Platforms.iOS;
 		if (filterPlatformWeb) filterPlatform |= Platforms.Web;
 		if (filterPlatform == 0) filterPlatform = Platforms.All;
-	}
-
-	async Task FetchGames()
-	{
-		await Task.Delay(0);
-		return;
-
-		/*
-		if (downloading) return;
-		downloading = true;
-
-		var okr = await RashClient.Itch.GetOwnedKeys(page);
-
-		if (okr.OwnedKeys.Count == 0)
-		{
-		RashClient.OwnedKeysFinished = true;
-		}
-		RashClient.OwnedKeys.AddRange(okr.OwnedKeys);
-
-		downloading = false;
-		page++;
-		*/
 	}
 }

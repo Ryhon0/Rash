@@ -10,6 +10,12 @@
 <label for="key">API Key</label>
 <input @bind="@key" type="password" id="key" placeholder="API Key">
 <button @onclick="@UpdateAPIKey">Update</button>
+<br>
+<input id="v1game" type="checkbox" @bind=@RashClient.Config.PreferV1GetGames>
+<label for="v1game">Prefer GetGamesV1 (for large libraries)</label>
+
+<br>
+<button @onclick="@Save">Save</button>
 
 <h1>ADB Devices</h1>
 @foreach (var dev in devs)
@@ -43,7 +49,6 @@
 	void UpdateCookie()
 	{
 		RashClient.Config.ItchCookie = cookie;
-		RashClient.Config.Save();
 		RashClient.Itch.ItchCookie = cookie;
 		cookie = null;
 	}
@@ -51,8 +56,12 @@
 	void UpdateAPIKey()
 	{
 		RashClient.Config.ItchAPIKey = key;
-		RashClient.Config.Save();
 		RashClient.Itch.APIKey = key;
 		key = null;
+	}
+
+	void Save()
+	{
+		RashClient.Config.Save();
 	}
 }

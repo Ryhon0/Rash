@@ -59,7 +59,7 @@ else
 	else
 	{
 		<h2>Downloads</h2>
-		@if(game.PriceCents != 0 && !RashClient.OwnedKeys.Any(x=>x.GameID == game.ID))
+		@if(game.PriceCents != 0 && key == 0)
 		{
 			<p>You may need to purchase this item to view downloads</p>
 		}
@@ -85,6 +85,7 @@ else
 @code {
 	[Parameter]
 	public long id { get; set; }
+	public long key;
 	Game game;
 	List<Upload> uploads;
 
@@ -95,9 +96,8 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-		game = (await RashClient.Itch.GetGame(id)).Game;
-
-		long key = RashClient.OwnedKeys.FirstOrDefault(k => k.GameID == id)?.ID ?? 0;
+		key = RashClient.GetKey(id);
+		game = await RashClient.GetGame(id);
 
 		uploads = (await RashClient.Itch.ListUploads(game.ID, key)).Uploads;
 	}

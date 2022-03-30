@@ -4,12 +4,20 @@
 <Spinner>
 </Spinner>
 
+
 @code{
 	[Parameter]
 	public string url {get;set;}
+	static Dictionary<string, long> Cached = new();
 	protected override async Task OnInitializedAsync()
 	{
-		long id = await SharpItch.Game.GetIDFromURL(url);
+		long id;
+		if(Cached.ContainsKey(url)) id = Cached[url];
+		else
+		{
+			id = await SharpItch.Game.GetIDFromURL(url);
+			Cached[url] = id;
+		}
 		NavManager.NavigateTo("/GameByID/" + id, replace: true);
 	}
 }

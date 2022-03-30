@@ -10,8 +10,8 @@ public static class DownloadManager
 
 	public static async Task StartDownloadUpload(long gameID, long uploadID)
 	{
-		var game = (await RashClient.Itch.GetGame(gameID)).Game;
-		var key = RashClient.OwnedKeys.FirstOrDefault(k => k.GameID == gameID)?.ID ?? 0;
+		var game = await RashClient.GetGame(gameID);
+		var key = RashClient.GetKey(uploadID);
 		var upload = (await RashClient.Itch.GetUpload(uploadID, key)).Upload;
 
 		var lib = Library.Libraries.First();
@@ -61,7 +61,7 @@ public class GameDownload
 
 	public async Task StartDownload()
 	{
-		var key = RashClient.OwnedKeys.FirstOrDefault(k => k.GameID == Game.ID)?.ID ?? 0;
+		var key = RashClient.GetKey(Game.ID);
 		var uuid = (await RashClient.Itch.NewDownloadSession(Game.ID, key)).UUID;
 
 		var url = RashClient.Itch.CreateDownloadURL(Upload.ID, uuid, key);
@@ -96,11 +96,7 @@ public class Downloader
 	public long totalBytes = 0;
 	public float Progress => (float)progressBytes / totalBytes;
 	public DownloaderState State = DownloaderState.Starting;
-	public long DownloadSpeed => (long)ProgressHistory.Average();
-
-	const int ProgressHistoryLength = 10;
-	public long[] ProgressHistory = new long[ProgressHistoryLength];
-	int currentHistoryId = 0;
+	public long DownloadSpeed;
 
 	const long chunkSize = 512 * 1024;
 	public Downloader(string url, string dest, HttpClient http = null)
@@ -135,12 +131,14 @@ public class Downloader
 			return false;
 		}
 
-		var hr = new HttpRequestMessage(HttpMethod.Get, url);
-
 		var to = Math.Min(totalBytes, progressBytes + chunkSize - 1);
 		if (to == 0) to = progressBytes + chunkSize - 1;
-		hr.RequestUri = new Uri(url);
-		hr.Headers.Add("Range", $"bytes={progressBytes}-{to}");
+
+		var hr = new RequestBuilder(url)
+			.AddHeader("Range", $"bytes={progressBytes}-{to}")
+			.AddItchCookie(RashClient.Itch.ItchCookie)
+			.Build();
+		hr.Method = HttpMethod.Get;
 
 		Stopwatch sw = new Stopwatch();
 		sw.Start();
@@ -156,13 +154,12 @@ public class Downloader
 
 		progressBytes += (long)res.Content.Headers.ContentLength;
 		totalBytes = (long)res.Content.Headers.ContentRange.Length;
-		await res.Content.CopyToAsync(output);
-
+		
 		sw.Stop();
 		var time = sw.Elapsed.TotalSeconds;
-		ProgressHistory[currentHistoryId] = (long)((long)res.Content.Headers.ContentLength / time);
-		currentHistoryId++;
-		currentHistoryId %= ProgressHistoryLength;
+		DownloadSpeed = (long)(res.Content.Headers.ContentLength / time);
+
+		await res.Content.CopyToAsync(output);
 
 		OnProgress?.Invoke(this, null);
 

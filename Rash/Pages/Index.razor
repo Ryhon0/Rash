@@ -33,17 +33,17 @@
 </div>
 
 @code {
-	List<Game> games = new();
-	ItchGameFeedParameters p = new()
+	static List<Game> games = new();
+	static ItchGameFeedParameters p = new()
 	{
 		Platforms = Platforms.Linux | Platforms.Windows | Platforms.Android,
 		ExcludedTag = "horror",
 		// ExcludedTag = "visual-novel",
 		// Can't decide 😢
 	};
-	int page = 1;
+	static int page = 1;
 
-	bool downloading;
+	static bool downloading;
 	async Task FetchGames()
 	{
 		if(downloading) return;
