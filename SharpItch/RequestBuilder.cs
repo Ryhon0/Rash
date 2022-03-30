@@ -13,6 +13,7 @@ public class RequestBuilder
 	List<(string Key, string Value)> Headers = new();
 	List<(string Key, string Value)> Cookies = new();
 	byte[] Body;
+	JsonSerializerOptions JsonOptions = new();
 
 	public string BuildURL()
 	{
@@ -29,6 +30,12 @@ public class RequestBuilder
 	public RequestBuilder(string url, params string[] url_params)
 	{
 		Url = string.Format(url, url_params);
+	}
+
+	public RequestBuilder AddConverter(JsonConverter conv)
+	{
+		JsonOptions.Converters.Add(conv);
+		return this;
 	}
 
 	public RequestBuilder AddCookie(string key, string value)
@@ -96,16 +103,16 @@ public class RequestBuilder
 
 	T HandleResponse<T>(HttpResponseMessage res)
 	{
-		JsonSerializerOptions opts = new();
-		opts.Converters.Add(new LuaArrayConverter());
-
-		return JsonSerializer.Deserialize<T>(res.Content.ReadAsStringAsync().Result, opts);
+		JsonOptions.Converters.Add(new LuaArrayConverter());
+		var str = res.Content.ReadAsStringAsync().Result;
+		return JsonSerializer.Deserialize<T>(str, JsonOptions);
 	}
 
 	public HttpRequestMessage Build()
 	{
 		HttpRequestMessage req = new();
 		req.RequestUri = new Uri(BuildURL());
+		
 		foreach (var h in Headers)
 			req.Headers.Add(h.Key, h.Value);
 
@@ -151,6 +158,7 @@ public class LuaArrayConverter : JsonConverter<object>
 		if (!t.IsGenericType) return false;
 
 		var can = t.GetGenericTypeDefinition() == typeof(List<>);
+
 		return can;
 	}
 
@@ -166,7 +174,23 @@ public class LuaArrayConverter : JsonConverter<object>
 			}
 			return Activator.CreateInstance(typeToConvert);
 		}
-
+		// Oh my fucking god this is ugly
+		else if(reader.TokenType == JsonTokenType.StartArray)
+		{
+			reader.Read();
+			var t = typeToConvert.GetGenericArguments()[0];
+			var lt = typeToConvert.GetGenericTypeDefinition().MakeGenericType(t);
+			var constr = lt.GetConstructors()[0];
+			var add = lt.GetMethod("Add");
+			var list = constr.Invoke(new object[]{});
+			
+			while (reader.TokenType != JsonTokenType.EndArray)
+			{
+				add.Invoke(list, new object[]{ JsonSerializer.Deserialize(ref reader, t, options) });
+				if(reader.TokenType == JsonTokenType.EndObject) reader.Read();
+			}
+			return list;
+		}
 		return JsonSerializer.Deserialize(ref reader, typeToConvert);
 	}
 
