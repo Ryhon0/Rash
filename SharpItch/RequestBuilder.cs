@@ -199,3 +199,22 @@ public class LuaArrayConverter : JsonConverter<object>
 		JsonSerializer.Serialize(writer, value, options);
 	}
 }
+
+public class V1DateConverter : JsonConverter<DateTime>
+{
+	public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	{
+		var str = reader.GetString();
+		// Bruh, this doesn't need to be so accurate
+		var idx = str.IndexOf('.');
+		if(idx != -1)
+			str = str.Substring(0, idx);
+
+		return DateTime.ParseExact(str, "yyyy-MM-dd HH:mm:ss", null);
+	}
+
+	public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
+	{
+		JsonSerializer.Serialize(writer, value.ToString("yyyy-MM-dd HH:MM:ss"), options);
+	}
+}
