@@ -3,25 +3,25 @@ public partial class Itch
 {
 	public string APIKey;
 	public string BaseAPIURLV1 = "https://itch.io/api/1";
-	public AuthenticationType V1APIAuthenticationType = AuthenticationType.KEY;
+	public AuthenticationType V1APIAuthenticationType = AuthenticationType.URL;
 
-	string BuildServerURL(string endpoint)
+	string BuildV1ApiURL(string endpoint)
 	{
 		string url = BaseAPIURLV1 + "/";
 		switch(V1APIAuthenticationType)
 		{
 			case AuthenticationType.URL:
-				url += $"{APIKey}/";
+				url += $"{APIKey}";
 				break;
 			case AuthenticationType.KEY:
-				url += $"key/";
+				url += $"key";
 				break;
 			case AuthenticationType.JWT:
-				url += $"jwt/";
+				url += $"jwt";
 				break;
 		}
 
-		return $"{BaseAPIURLV1}/{endpoint}";
+		return $"{url}/{endpoint}";
 	}
 }
 

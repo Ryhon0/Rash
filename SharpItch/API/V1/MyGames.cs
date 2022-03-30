@@ -30,28 +30,28 @@ partial class Itch
 	
 	public async Task<CredentialsInfo> GetCredentialsInfo()
 	{
-		string url = BuildServerURL("credentials/info");
+		string url = BuildV1ApiURL("credentials/info");
 		return await Get<CredentialsInfo>(url);
 	}
 
 	[Scope("profile:me")]
 	public async Task<ItchUser> GetMe()
 	{
-		string url = BuildServerURL("me");
+		string url = BuildV1ApiURL("me");
 		return await Get<ItchUser>(url, "user");
 	}
 
 	[Scope("profile:games")]
 	public async Task<List<ItchGame>> GetMyGames()
 	{
-		string url = BuildServerURL("my-games");
+		string url = BuildV1ApiURL("my-games");
 		return await Get<List<ItchGame>>(url, "games");
 	}
 
 	[Scope("game:view:purchases")]
 	public async Task<ItchDownloadKey> GetDownloadKeys(ulong gameID, ulong userID)
 	{
-		string url = BuildServerURL($"game/{gameID}/{userID}");
+		string url = BuildV1ApiURL($"game/{gameID}/{userID}");
 		return await Get<ItchDownloadKey>(url, "download_key");
 	}
 
