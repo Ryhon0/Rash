@@ -49,15 +49,6 @@ public class Game : IJsonOnDeserialized
 	[JsonPropertyName("sale")]
 	public Sale Sale { get; set; }
 
-	[JsonPropertyName("views_count")]
-	public long ViewsCount { get; set; }
-	[JsonPropertyName("downloads_count")]
-	public long DownloadsCount { get; set; }
-	[JsonPropertyName("purchases_count")]
-	public long PurchasesCount { get; set; }
-	[JsonPropertyName("published")]
-	public bool Published { get; set; } = true;
-
 	public Platforms Platforms { get; set; }
 
 	[JsonExtensionData]
