@@ -20,24 +20,6 @@ partial class Itch
 			.AddStringIfNotEmpty("secret", secret)
 			.Get<UploadResult>(HttpClient);
 
-		var u = ur.Upload;
-		u.Platforms = PlatformHelper.FromTraits(u.ExtensionData);
-		var traits = u.ExtensionData["traits"];
-		if (traits.ValueKind == JsonValueKind.Array)
-		{
-			foreach (var tv in traits.EnumerateArray())
-			{
-				var t = tv.GetString();
-				switch (t)
-				{
-					case "demo":
-						u.IsDemo = true;
-						break;
-				}
-			}
-		}
-		u.ExtensionData = null;
-
 		return ur;
 	}
 	public async Task<ListUploadsResult> ListUploads(long gameID, long downloadKeyId = 0, string password = null, string secret = null)
@@ -49,31 +31,6 @@ partial class Itch
 			.AddStringIfNotEmpty("password", password)
 			.AddStringIfNotEmpty("secret", secret)
 			.Get<ListUploadsResult>(HttpClient);
-
-		foreach (var u in ur.Uploads)
-		{
-			u.Platforms = PlatformHelper.FromTraits(u.ExtensionData);
-			var traits = u.ExtensionData["traits"];
-			if (traits.ValueKind == JsonValueKind.Array)
-			{
-				foreach (var tv in traits.EnumerateArray())
-				{
-					var t = tv.GetString();
-					switch (t)
-					{
-						case "demo":
-							u.IsDemo = true;
-							break;
-					}
-				}
-			}
-			u.ExtensionData = null;
-
-			if (u.Type == "html")
-			{
-				u.Platforms |= Platforms.Web;
-			}
-		}
 
 		return ur;
 	}
