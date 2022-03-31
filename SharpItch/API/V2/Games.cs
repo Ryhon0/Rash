@@ -7,7 +7,7 @@ partial class Itch
 	{
 		return await new RequestBuilder(BaseAPIURLV2 + "games/" + gameID)
 			.AddV2AcceptHeader()
-			.AddItchCookie(ItchCookie)
+			.AddV2Token(this)
 			.Get<GamesResult>(HttpClient);
 	}
 }

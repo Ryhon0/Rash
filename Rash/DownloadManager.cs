@@ -136,7 +136,7 @@ public class Downloader
 
 		var hr = new RequestBuilder(url)
 			.AddHeader("Range", $"bytes={progressBytes}-{to}")
-			.AddItchCookie(RashClient.Itch.ItchCookie)
+			.AddV2Token(RashClient.Itch)
 			.Build();
 		hr.Method = HttpMethod.Get;
 

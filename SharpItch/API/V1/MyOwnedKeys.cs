@@ -10,7 +10,7 @@ partial class Itch
 	public async Task<OwnedKeysResult> GetOwnedKeysV1(long page = 1)
 	{
 		return await new RequestBuilder(BuildV1ApiURL("my-owned-keys"))
-			.AddToken(this)
+			.AddV1Token(this)
 			.AddLong("page", page)
 			.AddConverter(new V1DateConverter())
 			.Get<OwnedKeysResult>(HttpClient);

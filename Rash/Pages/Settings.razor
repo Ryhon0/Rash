@@ -3,19 +3,37 @@
 
 <h1>Settings</h1>
 
-<label for="cookie">Cookie</label>
-<input @bind="@cookie" type="password" id="cookie" placeholder="itchio cookie">
-<button @onclick="@UpdateCookie">Update</button>
+<EditForm Model=@new()>
+<label for="v1">V2 Token</label>
+<input @bind="@v2" type="password" id="v2">
+<InputSelect @bind-Value="@v1type" >
+	@foreach (var v in Enum.GetValues(typeof(V1APITokenType)))
+	{
+		<option value="@v">@v</option>
+	}
+</InputSelect>
 <br>
-<label for="key">API Key</label>
-<input @bind="@key" type="password" id="key" placeholder="API Key">
-<button @onclick="@UpdateAPIKey">Update</button>
+<button @onclick="@UpdateV2">Update</button>
 <br>
+
+<label for="v1">V1 Token</label>
+<input @bind="@v1" type="password" id="v1">
+<InputSelect @bind-Value="@v2type" >
+	@foreach (var v in Enum.GetValues(typeof(V2APITokenType)))
+	{
+		<option value="@v">@v</option>
+	}
+</InputSelect>
+<br>
+<button @onclick="@UpdateV1">Update</button>
+<br>
+
 <input id="v1game" type="checkbox" @bind=@RashClient.Config.PreferV1GetGames>
 <label for="v1game">Prefer GetGamesV1 (for large libraries)</label>
 
 <br>
 <button @onclick="@Save">Save</button>
+</EditForm>
 
 <h1>ADB Devices</h1>
 @foreach (var dev in devs)
@@ -44,20 +62,23 @@
 		}
 	}
 
-	string cookie;
-	string key;
-	void UpdateCookie()
+	string v2;
+	string v1;
+	V2APITokenType v2type;
+	V1APITokenType v1type;
+	void UpdateV2()
 	{
-		RashClient.Config.ItchCookie = cookie;
-		RashClient.Itch.ItchCookie = cookie;
-		cookie = null;
+		RashClient.Config.V2Token = RashClient.Itch.V2APIKey = v2;
+		RashClient.Config.V2APITokenType = RashClient.Itch.V2APITokenType = v2type;
+		v2 = null;
 	}
 
-	void UpdateAPIKey()
+	void UpdateV1()
 	{
-		RashClient.Config.ItchAPIKey = key;
-		RashClient.Itch.APIKey = key;
-		key = null;
+		RashClient.Config.V1Token = RashClient.Itch.V1APIKey = v1;
+		RashClient.Config.V1APITokenType = RashClient.Itch.V1APITokenType = v1type;
+
+		v1 = null;
 	}
 
 	void Save()

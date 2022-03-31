@@ -14,7 +14,7 @@ partial class Itch
 	{
 		var ur = await new RequestBuilder(BaseAPIURLV2 + "uploads/" + uploadID)
 			.AddV2AcceptHeader()
-			.AddItchCookie(ItchCookie)
+			.AddV2Token(this)
 			.AddLongIfNotZero("download_key_id", downloadKeyId)
 			.AddStringIfNotEmpty("password", password)
 			.AddStringIfNotEmpty("secret", secret)
@@ -26,7 +26,7 @@ partial class Itch
 	{
 		var ur = await new RequestBuilder(BaseAPIURLV2 + "games/" + gameID + "/uploads")
 			.AddV2AcceptHeader()
-			.AddItchCookie(ItchCookie)
+			.AddV2Token(this)
 			.AddLongIfNotZero("download_key_id", downloadKeyId)
 			.AddStringIfNotEmpty("password", password)
 			.AddStringIfNotEmpty("secret", secret)

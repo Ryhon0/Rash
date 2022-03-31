@@ -1,22 +1,22 @@
 namespace SharpItch;
 public partial class Itch
 {
-	public string APIKey;
+	public string V1APIKey;
 	public string BaseAPIURLV1 = "https://itch.io/api/1";
-	public AuthenticationType V1APIAuthenticationType = AuthenticationType.URL;
+	public V1APITokenType V1APITokenType = V1APITokenType.URL;
 
 	string BuildV1ApiURL(string endpoint)
 	{
 		string url = BaseAPIURLV1 + "/";
-		switch(V1APIAuthenticationType)
+		switch(V1APITokenType)
 		{
-			case AuthenticationType.URL:
-				url += $"{APIKey}";
+			case V1APITokenType.URL:
+				url += $"{V1APIKey}";
 				break;
-			case AuthenticationType.KEY:
+			case V1APITokenType.KEY:
 				url += $"key";
 				break;
-			case AuthenticationType.JWT:
+			case V1APITokenType.JWT:
 				url += $"jwt";
 				break;
 		}
@@ -25,7 +25,7 @@ public partial class Itch
 	}
 }
 
-public enum AuthenticationType
+public enum V1APITokenType
 {
 	URL,
 	KEY,
@@ -34,13 +34,13 @@ public enum AuthenticationType
 
 public static class V1RequestBuilderExtensions
 {
-	public static RequestBuilder AddToken(this RequestBuilder rb, Itch itch)
+	public static RequestBuilder AddV1Token(this RequestBuilder rb, Itch itch)
 	{
-		if(itch.APIKey == null)
+		if(itch.V1APIKey == null)
 			throw new Exception("API Key not set");
 
-		if(itch.V1APIAuthenticationType != AuthenticationType.URL)
-			return rb.AddHeader("Authorization", "Bearer " + itch.APIKey);
+		if(itch.V1APITokenType != V1APITokenType.URL)
+			return rb.AddHeader("Authorization", "Bearer " + itch.V1APIKey);
 		else
 			return rb;
 	}

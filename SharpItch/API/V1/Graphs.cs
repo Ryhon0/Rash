@@ -6,7 +6,7 @@ partial class Itch
 	public async Task<GraphsResponse> GetGraphs()
 	{
 		return await new RequestBuilder(BuildV1ApiURL("my-games/graphs"))
-			.AddToken(this)
+			.AddV1Token(this)
 			.Get<GraphsResponse>(HttpClient);
 	}
 }

@@ -7,7 +7,7 @@ partial class Itch
 	{
 		var okr = await new RequestBuilder(BaseAPIURLV2 + "profile/owned-keys")
 			.AddV2AcceptHeader()
-			.AddItchCookie(ItchCookie)
+			.AddV2Token(this)
 			.AddLong("page", page)
 			.Get<OwnedKeysResult>(HttpClient);
 

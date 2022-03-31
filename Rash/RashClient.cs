@@ -13,12 +13,13 @@ public static class RashClient
 			Log.Write("Starting download of owned keys");
 			KeyDownloadFinished = false;
 			var usev1 = false;
-			if(Config.PreferV1GetGames)
-				usev1 = Itch.APIKey != null;
 			
-			if(Itch.ItchCookie == null)
+			if(Config.PreferV1GetGames)
+				usev1 = Itch.V1APIKey != null;
+			
+			if(Itch.V2APIKey == null)
 			{
-				if(Itch.APIKey != null)
+				if(Itch.V1APIKey != null)
 					usev1 = true;
 				else
 				{
@@ -72,8 +73,10 @@ public static class RashClient
 public class Config
 {
 	public List<string> LibraryPaths { get; set; } = new() { DefaultLibraryPath };
-	public string ItchCookie { get; set; }
-	public string ItchAPIKey { get; set; }
+	public string V2Token { get; set; }
+	public string V1Token { get; set; }
+	public V2APITokenType V2APITokenType { get; set; } = V2APITokenType.APIKey;
+	public V1APITokenType V1APITokenType { get; set; } = V1APITokenType.KEY;
 	public bool PreferV1GetGames { get; set; } = false;
 
 	public void Save()
@@ -83,14 +86,18 @@ public class Config
 
 	public async Task Setup()
 	{
-		if (ItchCookie != null) RashClient.LoggedIn = true;
-		if (ItchAPIKey == null)
+		if (V2Token != null) RashClient.LoggedIn = true;
+		if (V1Token == null)
 		{
 			// TODO: generate subkey
 		}
 
-		RashClient.Itch.ItchCookie = ItchCookie;
-		RashClient.Itch.APIKey = ItchAPIKey;
+
+		RashClient.Itch.V2APITokenType = V2APITokenType;
+		RashClient.Itch.V2APIKey = V2Token;
+
+		RashClient.Itch.V1APITokenType = V1APITokenType;
+		RashClient.Itch.V1APIKey = V1Token;
 
 		foreach (var lp in LibraryPaths)
 		{

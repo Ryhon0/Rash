@@ -8,7 +8,7 @@ partial class Itch
 	{
 		return await new RequestBuilder(BaseAPIURLV2 + "profile")
 			.AddV2AcceptHeader()
-			.AddItchCookie(ItchCookie)
+			.AddV2Token(this)
 			.Get<GetProfileResponse>(HttpClient);
 	}
 }
