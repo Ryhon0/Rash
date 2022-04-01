@@ -8,7 +8,8 @@ using System.Text.Json;
 RashClient.Config = Config.Load();
 await RashClient.Config.Setup();
 
-RashClient.StartKeyDownload();
+if(RashClient.LoggedIn)
+	RashClient.StartKeyDownload();
 
 var builder = WebApplication.CreateBuilder(args);
 

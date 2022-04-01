@@ -68,17 +68,18 @@
 	V1APITokenType v1type;
 	void UpdateV2()
 	{
-		RashClient.Config.V2Token = RashClient.Itch.V2APIKey = v2;
-		RashClient.Config.V2APITokenType = RashClient.Itch.V2APITokenType = v2type;
+		RashClient.Itch.V2APIKey = v2;
+		RashClient.Itch.V2APITokenType = v2type;
 		v2 = null;
+		Save();
 	}
 
 	void UpdateV1()
 	{
-		RashClient.Config.V1Token = RashClient.Itch.V1APIKey = v1;
-		RashClient.Config.V1APITokenType = RashClient.Itch.V1APITokenType = v1type;
-
+		RashClient.Itch.V1APIKey = v1;
+		RashClient.Itch.V1APITokenType = v1type;
 		v1 = null;
+		Save();
 	}
 
 	void Save()

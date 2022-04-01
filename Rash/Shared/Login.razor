@@ -1,0 +1,139 @@
+@page "/Login"
+
+@inject NavigationManager NavManager
+
+<h1>Login</h1>
+
+<p class="errors">
+	@error
+</p>
+
+@switch(State)
+{
+	case LoginState.Login:
+		<label for="username">Username: </label>
+		<input @bind="@username" id="username" />
+		<br>
+
+		<label for="password">Password: </label>
+		<input @bind="@password" id="password" type="password"/>
+		<br>
+
+		<button @onclick="@PostLogin">Log in</button>
+		<span> or </span>
+		<button @onclick="()=>{State = LoginState.Custom;}">Log in manually</button>
+	break;
+	case LoginState.Custom:
+		<p>Go to
+			<a href="https://itch.io/user/settings/api-keys" target="_blank">https://itch.io/user/settings/api-keys </a>
+			and copy one of your keys
+		</p>
+		<label for="apikey">API Key: </label>
+		<input @bind="@apikey" id="apikey" type="password"/>
+		<br/>
+		<button @onclick="ManualLogin">Log in</button>
+	break;
+	case LoginState.Wait:
+		<Spinner></Spinner>
+	break;
+	case LoginState.Captcha:
+		<p>Captcha required, cannot continue :(</p>
+		<iframe src="https://itch.io/captcha"></iframe>
+	break;
+	case LoginState.TOTP:
+		<p>2 Factor Authentication required, enter your 2FA code</p>
+		<label for="code">Code: </label>
+		<input @bind="@totpcode" id="code"/>
+		<br>
+
+		<button @onclick="@TOTPVerify">Verify</button>
+	break;
+	case LoginState.Success:
+		<p>Successfully logged in</p>
+	break;
+}
+
+@code{
+	string username, password;
+	string error;
+	async Task PostLogin()
+	{
+		error = null;
+		State = LoginState.Wait;
+		var source = OperatingSystem.IsAndroid() ? "android" : "desktop";
+		var lr = await RashClient.Itch.Login(username, password, source: source);
+		if(lr.Errors != null)
+		{
+			State = LoginState.Login;
+			error = string.Join('\n', lr.Errors);
+		}
+		else
+		{
+			if(lr.RecaptchaNeeded)
+			{
+				State = LoginState.Captcha;
+				return;
+			}
+
+			if(lr.TOTPNeeded)
+			{
+				token = lr.Token;
+				State = LoginState.TOTP;
+				return;
+			}
+
+			{
+				SetKey(lr.Key.Key);
+				State = LoginState.Success;
+			}
+		}
+	}
+
+	string token, totpcode;
+	async Task TOTPVerify()
+	{
+		error = null;
+		State = LoginState.Wait;
+		var tr = await RashClient.Itch.TOTPVerify(token, totpcode);
+		if(tr.Errors != null)
+		{
+			error = string.Join('\n', tr.Errors);
+			State = LoginState.TOTP;
+		}
+		else
+		{
+			SetKey(tr.Key.Key);
+			State = LoginState.Success;
+		}
+	}
+
+	string apikey;
+	void ManualLogin()
+	{
+		SetKey(apikey);
+		State = LoginState.Success;
+	}
+
+	void SetKey(string key)
+	{
+		RashClient.Itch.V1APIKey = key;
+		RashClient.Itch.V2APIKey = key;
+		RashClient.Itch.V2APITokenType = V2APITokenType.APIKey;
+		RashClient.Itch.V1APITokenType = V1APITokenType.KEY;
+		RashClient.LoggedIn = true;
+
+		RashClient.Config.Save();
+		NavManager.NavigateTo("/", true);
+	}
+
+	LoginState State;
+	enum LoginState
+	{
+		Login,
+		Wait,
+		Captcha,
+		TOTP,
+		Custom,
+		Success,
+	}
+}

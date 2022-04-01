@@ -81,6 +81,12 @@ public class Config
 
 	public void Save()
 	{
+		// Get tokens from Itch
+		V1Token = RashClient.Itch.V1APIKey;
+		V2Token = RashClient.Itch.V2APIKey;
+		V1APITokenType = RashClient.Itch.V1APITokenType;
+		V2APITokenType = RashClient.Itch.V2APITokenType;
+
 		File.WriteAllText(DefaultConfigPath, JsonSerializer.Serialize(this));
 	}
 
@@ -89,7 +95,15 @@ public class Config
 		if (V2Token != null) RashClient.LoggedIn = true;
 		if (V1Token == null)
 		{
-			// TODO: generate subkey
+			if(V2APITokenType == V2APITokenType.APIKey)
+			{
+				V1Token = V2Token;
+				V1APITokenType = V1APITokenType.KEY;
+			}
+			else
+			{
+				// TODO: generate subkey
+			}
 		}
 
 
