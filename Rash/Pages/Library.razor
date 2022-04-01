@@ -19,8 +19,18 @@
 	}
 </div>
 
-<h1>Library</h1>
-
+<h1>
+	Library
+@if(RashClient.KeyDownloadFinished)
+{
+	<button @onclick="()=> {
+			RashClient.StartKeyDownload();
+			InvokeAsync(StateHasChanged);
+		}">
+		<span class="oi oi-reload"></span>
+	</button>
+}
+</h1>
 <style>
 	.filters {
 		display: flex;

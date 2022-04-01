@@ -10,6 +10,7 @@ public static class RashClient
 	{
 		new Task(async () =>
 		{
+			CachedKeys = new();
 			Log.Write("Starting download of owned keys");
 			KeyDownloadFinished = false;
 			var usev1 = false;
