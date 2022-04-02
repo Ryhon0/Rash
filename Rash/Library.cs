@@ -1,7 +1,8 @@
 namespace Rash;
 
-using System.Text.Json;
 using SharpItch;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 public static class Library
 {
@@ -68,6 +69,7 @@ public class LibraryInfo
 				}
 
 				var upload = JsonSerializer.Deserialize<LibraryUploadInfo>(File.ReadAllText(uploadfile));
+				upload.DirectoryPath = uf.FullName;
 				gi.Uploads.Add(upload);
 
 				Log.Write($"Discovered upload {upload.Upload.DisplayName??upload.Upload.Filename}({upload.Upload.ID}) for game {game.Title}({game.ID})");
@@ -75,7 +77,7 @@ public class LibraryInfo
 				if(!upload.DownloadFinished)
 				{
 					Log.Write($"Download for {upload.Upload.DisplayName??upload.Upload.Filename}({upload.Upload.ID}) was not finished, continuing");
-					await DownloadManager.StartDownloadUpload(game.ID, upload.Upload.ID);
+					await DownloadManager.ContinueUploadDownload(upload);
 				}
 			}
 		
@@ -96,9 +98,17 @@ public class LibraryGameInfo
 
 public class LibraryUploadInfo
 {
+	[JsonIgnore]
+	public string DirectoryPath { get; set; }
+
 	public Upload Upload { get; set; }
 
 	public ScannedArchive ScannedArchive { get; set; }
 	public bool DownloadFinished { get; set; }
 	public bool ExtractFinished { get; set; }
+
+	public void Save()
+	{
+		File.WriteAllText(DirectoryPath + "/upload.json", JsonSerializer.Serialize(this));
+	}
 }

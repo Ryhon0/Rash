@@ -23,37 +23,104 @@ public static class DownloadManager
 				Game = game
 			};
 			lib.Games.Add(gi);
-			Directory.CreateDirectory(lib.Path + "/" + game.ID);
-			await File.WriteAllTextAsync(lib.Path + "/" + game.ID + "/game.json", JsonSerializer.Serialize(game));
+			var gamepath = lib.Path + "/" + game.ID;
+			Directory.CreateDirectory(gamepath);
+			await File.WriteAllTextAsync(gamepath + "/game.json", JsonSerializer.Serialize(game));
 		}
 
+		var path = lib.Path + "/" + game.ID + "/" + upload.ID;
 		LibraryUploadInfo ui = new LibraryUploadInfo()
 		{
-			Upload = upload
+			Upload = upload,
+			DirectoryPath = path
 		};
-		Directory.CreateDirectory(lib.Path + "/" + game.ID + "/" + upload.ID);
-		await File.WriteAllTextAsync(lib.Path + "/" + game.ID + "/" + upload.ID + "/upload.json", JsonSerializer.Serialize(ui));
+		Directory.CreateDirectory(path);
+		ui.Save();
 		gi.Uploads.Add(ui);
 
-		var dl = new GameDownload(game, upload);
-		Downloads.Add(dl);
-		await dl.StartDownload();
+		await ContinueUploadDownload(gi, ui);
+	}
+
+	public static async Task ContinueUploadDownload(LibraryGameInfo gi, LibraryUploadInfo ui)
+	{
+		var dl = new GameDownload(gi.Game, ui);
 		dl.Downloader.OnFinish += (c, a) =>
 		{
 			ui.DownloadFinished = true;
-			File.WriteAllText(lib.Path + "/" + game.ID + "/" + upload.ID + "/upload.json", JsonSerializer.Serialize(ui));
+			ui.Save();
 		};
+		Downloads.Add(dl);
 		OnDownloadStarted?.Invoke(dl, EventArgs.Empty);
+		await dl.StartDownload();
+	}
+
+	public static async Task InstallUpload(Game g, LibraryUploadInfo ui)
+	{
+		var file = ui.DirectoryPath + "/" + ui.Upload.Filename;
+
+		// https://itch.io/docs/itch/integrating/compatibility-policy.html
+		// Gold tier
+		// Should extract without any warnings
+		if(file.EndsWith(".zip"))
+		{
+
+		}
+		else if(file.EndsWith(".rar"))
+		{
+
+		}
+		else if(file.EndsWith(".tar") ||
+				file.EndsWith(".tar.gz") ||
+				file.EndsWith(".tar.bz2") ||
+				// Technically Silver tier
+				file.EndsWith(".tar.xz"))
+		{
+			var compression = new FileInfo(file).Extension;
+			switch(compression)
+			{
+				case "tar":
+				break;
+				case "gz":
+				break;
+				case "bz2":
+				break;
+				case "xz":
+				break;
+			}
+		}
+		else if(file.EndsWith(".dmg"))
+		{
+
+		}
+		// Silver tier
+		else if(file.EndsWith(".7z"))
+		{
+
+		}
+
+		else if(file.EndsWith(".apk"))
+		{
+
+		}
+		else if(file.EndsWith(".exe"))
+		{
+			// Check if is a InstallShield archive
+		}
+		else
+		{
+			// Unknown, bronze/oh no tier download
+		}
+		
 	}
 }
 
 public class GameDownload
 {
 	public Game Game;
-	public Upload Upload;
+	public LibraryUploadInfo Upload;
 	public Downloader Downloader { get; set; }
 
-	public GameDownload(Game game, Upload upload)
+	public GameDownload(Game game, LibraryUploadInfo upload)
 	{
 		Game = game;
 		Upload = upload;
@@ -64,12 +131,11 @@ public class GameDownload
 		var key = RashClient.GetKey(Game.ID);
 		var uuid = (await RashClient.Itch.NewDownloadSession(Game.ID, key)).UUID;
 
-		var url = RashClient.Itch.CreateDownloadURL(Upload.ID, uuid, key);
+		var url = RashClient.Itch.CreateDownloadURL(Upload.Upload.ID, uuid, key);
 
-		var gamedir = System.Environment.GetEnvironmentVariable("HOME") + "/Games/Rash/" + Game.ID;
-		var dldir = gamedir + "/" + Upload.ID;
+		var dldir = Upload.DirectoryPath;
 		Utils.CreateDirectoryWithParents(dldir);
-		var filepath = dldir + "/" + Upload.Filename;
+		var filepath = dldir + "/" + Upload.Upload.Filename;
 
 		var dl = new Downloader(url, filepath, RashClient.Itch.HttpClient);
 		Downloader = dl;
