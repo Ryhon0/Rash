@@ -77,7 +77,7 @@ public class LibraryInfo
 				if(!upload.DownloadFinished)
 				{
 					Log.Write($"Download for {upload.Upload.DisplayName??upload.Upload.Filename}({upload.Upload.ID}) was not finished, continuing");
-					await DownloadManager.ContinueUploadDownload(upload);
+					await DownloadManager.ContinueUploadDownload(game, upload);
 				}
 			}
 		

@@ -18,7 +18,7 @@
 		<button @onclick="()=> {dl.Downloader.Download();}"><span class="oi oi-media-play"></span></button>
 	}
 
-	<div>@(dl.Upload.DisplayName??dl.Upload.Filename)</div>
+	<div>@(dl.Upload.Upload.DisplayName??dl.Upload.Upload.Filename)</div>
 	@if(dl.Downloader.State == DownloaderState.Downloading)
 	{
 		<div>
@@ -34,7 +34,7 @@
 	
 	@if(dl.Downloader.State == DownloaderState.Finished)
 	{
-		<a href="javascript:void(0)" @onclick="()=>{openShell(dl.Downloader.OutputPath);}">Open folder</a>
+		<a href="javascript:void(0)" @onclick="()=>{openShell(dl.Upload.DirectoryPath);}">Open folder</a>
 	}
 </div>
 }

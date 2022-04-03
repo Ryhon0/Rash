@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.0.7" />
+    <PackageReference Include="SharpCompress" Version="0.31.0" />
     <PackageReference Include="Sve.Blazor.InfiniteScroll" Version="1.0.0-alpha" />
   </ItemGroup>
 

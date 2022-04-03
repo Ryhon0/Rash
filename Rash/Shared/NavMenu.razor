@@ -37,7 +37,7 @@
 <div>
 	<img src="@dl.Game.CoverURL" width="100px">
 	<h4>@dl.Game.Title</h4>
-	<div>@(dl.Upload.DisplayName??dl.Upload.Filename)</div>
+	<div>@(dl.Upload.Upload.DisplayName??dl.Upload.Upload.Filename)</div>
 	@if(dl.Downloader.State == DownloaderState.Downloading)
 	{
 		<div>

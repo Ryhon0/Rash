@@ -2,7 +2,14 @@ namespace Rash;
 using SharpItch;
 using System.Diagnostics;
 using System.Text.Json;
-
+using SharpCompress.Compressors;
+using SharpCompress.Readers;
+using SharpCompress.Compressors.BZip2;
+using SharpCompress.Compressors.Deflate;
+using SharpCompress.Compressors.Xz;
+using SharpCompress.Archives.Tar;
+using SharpCompress.Archives.Rar;
+using SharpCompress.Archives.Zip;
 public static class DownloadManager
 {
 	public static event EventHandler OnDownloadStarted;
@@ -38,16 +45,17 @@ public static class DownloadManager
 		ui.Save();
 		gi.Uploads.Add(ui);
 
-		await ContinueUploadDownload(gi, ui);
+		await ContinueUploadDownload(gi.Game, ui);
 	}
 
-	public static async Task ContinueUploadDownload(LibraryGameInfo gi, LibraryUploadInfo ui)
+	public static async Task ContinueUploadDownload(Game g, LibraryUploadInfo ui)
 	{
-		var dl = new GameDownload(gi.Game, ui);
+		var dl = new GameDownload(g, ui);
 		dl.Downloader.OnFinish += (c, a) =>
 		{
 			ui.DownloadFinished = true;
 			ui.Save();
+			dl.Downloader.output.Close();
 		};
 		Downloads.Add(dl);
 		OnDownloadStarted?.Invoke(dl, EventArgs.Empty);
@@ -61,48 +69,67 @@ public static class DownloadManager
 		// https://itch.io/docs/itch/integrating/compatibility-policy.html
 		// Gold tier
 		// Should extract without any warnings
-		if(file.EndsWith(".zip"))
+		if (file.EndsWith(".zip"))
 		{
 
 		}
-		else if(file.EndsWith(".rar"))
+		else if (file.EndsWith(".rar"))
 		{
 
 		}
-		else if(file.EndsWith(".tar") ||
+		else if (file.EndsWith(".tar") ||
 				file.EndsWith(".tar.gz") ||
 				file.EndsWith(".tar.bz2") ||
 				// Technically Silver tier
 				file.EndsWith(".tar.xz"))
 		{
+			Stream input = File.Open(ui.DirectoryPath + "/" + ui.Upload.Filename, FileMode.Open);
+
 			var compression = new FileInfo(file).Extension;
-			switch(compression)
+			switch (compression)
 			{
-				case "tar":
-				break;
 				case "gz":
-				break;
+					input = new DeflateStream(input, CompressionMode.Decompress);
+					break;
 				case "bz2":
-				break;
+					input = new BZip2Stream(input, CompressionMode.Decompress, true);
+					break;
 				case "xz":
-				break;
+					input = new XZStream(input);
+					break;
+			}
+
+			var tar = TarArchive.Open(input);
+			tar.ExtractAllEntries();
+			using (var reader = tar.ExtractAllEntries())
+			{
+				while(reader.MoveToNextEntry())
+				{
+					reader.WriteEntryToDirectory(ui.DirectoryPath, new SharpCompress.Common.ExtractionOptions()
+					{
+						ExtractFullPath = true,
+						PreserveAttributes = true,
+						PreserveFileTime = true,
+						Overwrite = true
+					});
+				}
 			}
 		}
-		else if(file.EndsWith(".dmg"))
+		else if (file.EndsWith(".dmg"))
 		{
 
 		}
 		// Silver tier
-		else if(file.EndsWith(".7z"))
+		else if (file.EndsWith(".7z"))
 		{
 
 		}
 
-		else if(file.EndsWith(".apk"))
+		else if (file.EndsWith(".apk"))
 		{
 
 		}
-		else if(file.EndsWith(".exe"))
+		else if (file.EndsWith(".exe"))
 		{
 			// Check if is a InstallShield archive
 		}
@@ -110,7 +137,10 @@ public static class DownloadManager
 		{
 			// Unknown, bronze/oh no tier download
 		}
-		
+
+		ui.ScannedArchive = (await RashClient.Itch.GetUploadScannedArchive(ui.Upload.ID,
+			RashClient.GetKey(ui.Upload.ID))).ScannedArchive;
+		ui.ExtractFinished = true;
 	}
 }
 
@@ -156,8 +186,7 @@ public class Downloader
 
 	HttpClient http;
 	string url;
-	FileStream output;
-	public string OutputPath => output.Name;
+	public FileStream output;
 	public long progressBytes = 0;
 	public long totalBytes = 0;
 	public float Progress => (float)progressBytes / totalBytes;
@@ -220,7 +249,7 @@ public class Downloader
 
 		progressBytes += (long)res.Content.Headers.ContentLength;
 		totalBytes = (long)res.Content.Headers.ContentRange.Length;
-		
+
 		sw.Stop();
 		var time = sw.Elapsed.TotalSeconds;
 		DownloadSpeed = (long)(res.Content.Headers.ContentLength / time);
