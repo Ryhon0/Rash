@@ -41,6 +41,12 @@ public static class DownloadManager
 			Upload = upload,
 			DirectoryPath = path
 		};
+		
+		// Check available space
+		// Actually follows symlinks, wow! What's your excuse, Rockstar?
+		var di = new DriveInfo(path);
+		// di.AvailableFreeSpace
+
 		Directory.CreateDirectory(path);
 		ui.Save();
 		gi.Uploads.Add(ui);

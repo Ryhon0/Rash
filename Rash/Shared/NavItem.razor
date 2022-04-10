@@ -1,0 +1,33 @@
+@inject NavigationManager NavManager
+
+<a class="nav-item @StyleClass" href="@href">
+	@ChildContent
+</a>
+
+@code {
+	[Parameter]
+	public string href { get; set; }
+
+	[Parameter]
+	public RenderFragment ChildContent { get; set; }
+
+	string StyleClass { get; set; } = "nav-item";
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		UpdateStyle();
+		NavManager.LocationChanged += OnLocationChanged;
+	}
+
+	private void OnLocationChanged(object sender, LocationChangedEventArgs args)
+	{
+		UpdateStyle();
+	}
+
+	void UpdateStyle()
+	{
+		StyleClass = NavManager.Uri.StartsWith(href, StringComparison.OrdinalIgnoreCase)
+			? "active" : ""; 
+	}
+}

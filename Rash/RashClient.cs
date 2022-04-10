@@ -40,6 +40,7 @@ public static class RashClient
 
 				if (okr.PerPage != okr.OwnedKeys.Count)
 				{
+					CachedKeys = CachedKeys.OrderByDescending(k=>k.Downloads).ThenByDescending(k=>k.Game.Title).ToList();
 					Log.Write("Downloading owned keys finished");
 					KeyDownloadFinished = true;
 					return;
